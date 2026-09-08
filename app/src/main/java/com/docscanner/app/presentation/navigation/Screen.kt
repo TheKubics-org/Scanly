@@ -16,7 +16,7 @@ sealed class Screen(val route: String) {
     object Search : Screen("search")
     object Cloud : Screen("cloud")
     object StorageDashboard : Screen("storage_dashboard")
-    object Auth : Screen("auth")
+    object StorageProviders : Screen("storage_providers")
     object Settings : Screen("settings")
     object Trash : Screen("trash")
 }

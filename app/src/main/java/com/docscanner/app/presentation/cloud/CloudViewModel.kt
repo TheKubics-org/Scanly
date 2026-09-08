@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.docscanner.app.domain.model.CloudDocument
 import com.docscanner.app.domain.model.StorageQuota
-import com.docscanner.app.domain.model.UserAccount
-import com.docscanner.app.domain.service.auth.AuthService
 import com.docscanner.app.domain.service.cloud.CloudStorageService
 import com.docscanner.app.service.sync.CloudSyncManager
 import com.docscanner.app.util.NetworkMonitor
+import com.scanly.data.storage.StorageConfig
+import com.scanly.data.vault.StorageVaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,12 +22,17 @@ import javax.inject.Inject
 @HiltViewModel
 class CloudViewModel @Inject constructor(
     private val cloudStorageService: CloudStorageService,
-    private val authService: AuthService,
+    private val storageVaultRepository: StorageVaultRepository,
     private val cloudSyncManager: CloudSyncManager,
     val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
-    val currentUser: StateFlow<UserAccount?> = authService.currentUser
+    val activeConfig: StateFlow<StorageConfig?> = storageVaultRepository.observeActiveConfig()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            null
+        )
 
     val cloudDocuments: StateFlow<List<CloudDocument>> = cloudStorageService.listCloudDocuments()
         .stateIn(

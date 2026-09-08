@@ -7,12 +7,12 @@ import com.docscanner.app.domain.model.FilterType
 import com.docscanner.app.domain.model.PageSize
 import com.docscanner.app.domain.model.QualityLevel
 import com.docscanner.app.domain.model.SaveAction
-import com.docscanner.app.domain.model.UserAccount
 import com.docscanner.app.domain.model.UserSettings.ThemeMode
 import com.docscanner.app.domain.model.UserSettings
 import com.docscanner.app.domain.repository.SettingsRepository
-import com.docscanner.app.domain.service.auth.AuthService
 import com.docscanner.app.service.sync.CloudSyncManager
+import com.scanly.data.storage.StorageConfig
+import com.scanly.data.vault.StorageVaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,11 +23,16 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val authService: AuthService,
+    private val storageVaultRepository: StorageVaultRepository,
     private val cloudSyncManager: CloudSyncManager
 ) : ViewModel() {
 
-    val currentUser: StateFlow<UserAccount?> = authService.currentUser
+    val activeConfig: StateFlow<StorageConfig?> = storageVaultRepository.observeActiveConfig()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            null
+        )
 
     val settings: StateFlow<UserSettings> = settingsRepository.settings
         .stateIn(
@@ -86,13 +91,6 @@ class SettingsViewModel @Inject constructor(
     fun updateDefaultSaveAction(action: SaveAction) {
         viewModelScope.launch {
             settingsRepository.updateSettings(settings.value.copy(defaultSaveAction = action))
-        }
-    }
-
-    fun signOut(onSuccess: () -> Unit = {}) {
-        viewModelScope.launch {
-            authService.signOut()
-            onSuccess()
         }
     }
 

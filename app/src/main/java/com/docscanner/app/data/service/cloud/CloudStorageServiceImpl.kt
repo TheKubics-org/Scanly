@@ -14,7 +14,6 @@ import com.docscanner.app.domain.model.Document
 import com.docscanner.app.domain.model.Page
 import com.docscanner.app.domain.model.StorageQuota
 import com.docscanner.app.domain.model.SyncStatus
-import com.docscanner.app.domain.service.auth.AuthService
 import com.docscanner.app.domain.service.cloud.CloudStorageService
 import com.docscanner.app.util.NetworkMonitor
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -38,7 +36,6 @@ class CloudStorageServiceImpl @Inject constructor(
     private val documentDao: DocumentDao,
     private val pageDao: PageDao,
     private val syncQueueDao: SyncQueueDao,
-    private val authService: AuthService,
     private val networkMonitor: NetworkMonitor
 ) : CloudStorageService {
 
@@ -48,8 +45,7 @@ class CloudStorageServiceImpl @Inject constructor(
         pdfFile: File?,
         onProgress: (Float) -> Unit
     ): Result<CloudDocument> = withContext(Dispatchers.IO) {
-        val user = authService.currentUser.value
-        val userId = user?.uid ?: "local_guest_user"
+        val userId = "byos_default"
 
         // Calculate total size of document files
         var totalBytes = 0L
@@ -212,37 +208,33 @@ class CloudStorageServiceImpl @Inject constructor(
     }
 
     override fun listCloudDocuments(): Flow<List<CloudDocument>> {
-        return authService.currentUser.flatMapLatest { user ->
-            val userId = user?.uid ?: "local_guest_user"
-            cloudDocumentDao.getCloudDocuments(userId).map { entities ->
-                entities.map { it.toDomain() }
-            }
+        val userId = "byos_default"
+        return cloudDocumentDao.getCloudDocuments(userId).map { entities ->
+            entities.map { it.toDomain() }
         }
     }
 
     override fun getStorageUsage(): Flow<StorageQuota> {
-        return authService.currentUser.flatMapLatest { user ->
-            val userId = user?.uid ?: "local_guest_user"
-            val totalBytes = 10L * 1024L * 1024L * 1024L // 10 GB free tier
+        val userId = "byos_default"
+        val totalBytes = 10L * 1024L * 1024L * 1024L // 10 GB default indicator
 
-            combine(
-                cloudDocumentDao.getTotalUsage(userId),
-                cloudDocumentDao.getUsageByType(userId, "PDF"),
-                cloudDocumentDao.getUsageByType(userId, "JPG")
-            ) { total, pdf, img ->
-                val used = total ?: 0L
-                val pdfs = pdf ?: 0L
-                val imgs = img ?: 0L
-                val docs = (used - pdfs - imgs).coerceAtLeast(0L)
+        return combine(
+            cloudDocumentDao.getTotalUsage(userId),
+            cloudDocumentDao.getUsageByType(userId, "PDF"),
+            cloudDocumentDao.getUsageByType(userId, "JPG")
+        ) { total, pdf, img ->
+            val used = total ?: 0L
+            val pdfs = pdf ?: 0L
+            val imgs = img ?: 0L
+            val docs = (used - pdfs - imgs).coerceAtLeast(0L)
 
-                StorageQuota(
-                    usedBytes = used,
-                    totalBytes = totalBytes,
-                    documentBytes = docs,
-                    imageBytes = imgs,
-                    pdfBytes = pdfs
-                )
-            }
+            StorageQuota(
+                usedBytes = used,
+                totalBytes = totalBytes,
+                documentBytes = docs,
+                imageBytes = imgs,
+                pdfBytes = pdfs
+            )
         }
     }
 

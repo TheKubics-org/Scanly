@@ -174,12 +174,37 @@ class EditorViewModel @Inject constructor(
         _currentFilter.value = filter
     }
 
+    fun applyFilter(filter: FilterType) {
+        setFilter(filter)
+    }
+
     fun setBrightness(value: Float) {
-        _brightness.value = value
+        _brightness.value = value.coerceIn(-1f, 1f)
+    }
+
+    fun adjustBrightness(value: Float) {
+        setBrightness(value)
     }
 
     fun setContrast(value: Float) {
-        _contrast.value = value
+        _contrast.value = value.coerceIn(-1f, 1f)
+    }
+
+    fun adjustContrast(value: Float) {
+        setContrast(value)
+    }
+
+    fun resetBrightness() {
+        _brightness.value = 0f
+    }
+
+    fun resetContrast() {
+        _contrast.value = 0f
+    }
+
+    fun resetAdjustments() {
+        _brightness.value = 0f
+        _contrast.value = 0f
     }
 
     fun rotatePage() {

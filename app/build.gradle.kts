@@ -99,10 +99,15 @@ dependencies {
     // WorkManager
     implementation(libs.work.runtime.ktx)
 
+    // Network
+    implementation(libs.okhttp)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)
+    testImplementation(libs.mockwebserver)
+    testImplementation(libs.coroutines.test)
     testImplementation(libs.room.testing)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)

@@ -17,8 +17,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.docscanner.app.presentation.auth.AuthScreen
-import com.docscanner.app.presentation.auth.AuthViewModel
 import com.docscanner.app.presentation.cloud.CloudScreen
 import com.docscanner.app.presentation.cloud.CloudViewModel
 import com.docscanner.app.presentation.cloud.StorageDashboardScreen
@@ -60,7 +58,7 @@ fun AppNavigation(
         Screen.Editor.route,
         Screen.Viewer.route,
         Screen.StorageDashboard.route,
-        Screen.Auth.route
+        Screen.StorageProviders.route
     )
     val shouldShowBottomBar = currentRoute !in hideBottomBarRoutes
 
@@ -202,7 +200,7 @@ fun AppNavigation(
                     CloudScreen(
                         viewModel = viewModel,
                         onNavigateToDashboard = { navController.navigate(Screen.StorageDashboard.route) },
-                        onNavigateToAuth = { navController.navigate(Screen.Auth.route) },
+                        onNavigateToProviders = { navController.navigate(Screen.StorageProviders.route) },
                         onDocumentClick = { docId ->
                             navController.navigate(Screen.Viewer.createRoute(docId))
                         }
@@ -218,13 +216,10 @@ fun AppNavigation(
                     )
                 }
 
-                // Auth Screen
-                composable(Screen.Auth.route) {
-                    val viewModel: AuthViewModel = hiltViewModel()
-                    AuthScreen(
-                        viewModel = viewModel,
-                        onNavigateBack = { navController.popBackStack() }
-                    )
+                // Storage Providers Route
+                composable(Screen.StorageProviders.route) {
+                    // M2 will provide the full StorageProvidersScreen; fallback to popBackStack if accessed
+                    navController.popBackStack()
                 }
 
                 // Search
@@ -245,7 +240,7 @@ fun AppNavigation(
                         viewModel = viewModel,
                         onNavigateToTrash = { navController.navigate(Screen.Trash.route) },
                         onNavigateToDashboard = { navController.navigate(Screen.StorageDashboard.route) },
-                        onNavigateToAuth = { navController.navigate(Screen.Auth.route) },
+                        onNavigateToProviders = { navController.navigate(Screen.StorageProviders.route) },
                         onNavigateToCloud = { navController.navigate(Screen.Cloud.route) }
                     )
                 }

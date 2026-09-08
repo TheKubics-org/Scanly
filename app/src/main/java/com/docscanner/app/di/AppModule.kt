@@ -41,4 +41,14 @@ object AppModule {
     @Provides
     @Singleton
     fun provideContext(app: Application): Context = app.applicationContext
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): okhttp3.OkHttpClient {
+        return okhttp3.OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+    }
 }

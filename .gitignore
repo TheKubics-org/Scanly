@@ -23,3 +23,5 @@ push_to_github.bat
 web/node_modules/
 web/.vite/
 web/dist/
+
+.kotlin/

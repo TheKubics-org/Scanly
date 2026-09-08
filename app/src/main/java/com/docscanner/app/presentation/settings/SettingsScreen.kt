@@ -36,11 +36,11 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onNavigateToTrash: () -> Unit,
     onNavigateToDashboard: () -> Unit,
-    onNavigateToAuth: () -> Unit,
+    onNavigateToProviders: () -> Unit,
     onNavigateToCloud: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
-    val currentUser by viewModel.currentUser.collectAsState()
+    val activeConfig by viewModel.activeConfig.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -74,16 +74,16 @@ fun SettingsScreen(
                 categoryTitle = stringResource(R.string.settings_cloud_category),
                 categoryIcon = Icons.Outlined.Cloud
             ) {
-                val accountSubtitle = if (currentUser != null) {
-                    stringResource(R.string.settings_signed_in_as, currentUser!!.email)
+                val providerSubtitle = if (activeConfig != null) {
+                    "Active: ${activeConfig!!.displayName}"
                 } else {
-                    stringResource(R.string.settings_not_signed_in)
+                    "Not configured (Tap to configure)"
                 }
 
                 SettingsClickableItem(
-                    title = stringResource(R.string.settings_account),
-                    subtitle = accountSubtitle,
-                    onClick = onNavigateToAuth
+                    title = "Storage Destinations (BYOS)",
+                    subtitle = providerSubtitle,
+                    onClick = onNavigateToProviders
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

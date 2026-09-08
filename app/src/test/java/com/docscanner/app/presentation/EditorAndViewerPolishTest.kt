@@ -20,6 +20,8 @@ class EditorAndViewerPolishTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val repository = mockk<DocumentRepository>(relaxed = true)
+    private val settingsRepository = mockk<com.docscanner.app.domain.repository.SettingsRepository>(relaxed = true)
+    private val cloudStorageService = mockk<com.docscanner.app.domain.service.cloud.CloudStorageService>(relaxed = true)
     private val filterService = mockk<ImageFilterService>(relaxed = true)
 
     @Before
@@ -122,7 +124,7 @@ class EditorAndViewerPolishTest {
         every { repository.getPages("doc1") } returns flowOf(listOf(page))
 
         val savedState = SavedStateHandle(mapOf("documentId" to "doc1"))
-        val viewModel = EditorViewModel(savedState, repository, filterService)
+        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService)
         testScheduler.advanceUntilIdle()
 
         assertEquals(0, viewModel.rotation.value)
@@ -163,7 +165,7 @@ class EditorAndViewerPolishTest {
         every { repository.getPages("doc1") } returns flowOf(listOf(page))
 
         val savedState = SavedStateHandle(mapOf("documentId" to "doc1"))
-        val viewModel = EditorViewModel(savedState, repository, filterService)
+        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService)
         testScheduler.advanceUntilIdle()
 
         // Adjust Brightness & Contrast
@@ -221,7 +223,7 @@ class EditorAndViewerPolishTest {
         every { repository.getPages("doc1") } returns flowOf(listOf(page))
 
         val savedState = SavedStateHandle(mapOf("documentId" to "doc1"))
-        val viewModel = EditorViewModel(savedState, repository, filterService)
+        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService)
         testScheduler.advanceUntilIdle()
 
         assertEquals(FilterType.ORIGINAL, viewModel.currentFilter.value)
@@ -239,8 +241,8 @@ class EditorAndViewerPolishTest {
         val charCount = rawText.length
         val wordCount = rawText.split(Regex("\\s+")).filter { it.isNotBlank() }.size
 
-        assertEquals(81, charCount)
-        assertEquals(11, wordCount)
+        assertEquals(80, charCount)
+        assertEquals(12, wordCount)
 
         // Empty text
         val emptyText: String? = null

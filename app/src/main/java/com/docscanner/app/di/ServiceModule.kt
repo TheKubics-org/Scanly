@@ -1,9 +1,9 @@
 package com.docscanner.app.di
 
-import com.docscanner.app.data.service.auth.AuthServiceImpl
 import com.docscanner.app.data.service.cloud.CloudStorageServiceImpl
-import com.docscanner.app.domain.service.auth.AuthService
 import com.docscanner.app.domain.service.cloud.CloudStorageService
+import com.scanly.data.vault.EncryptedStorageVaultRepositoryImpl
+import com.scanly.data.vault.StorageVaultRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -22,7 +22,7 @@ abstract class ServiceModule {
 
     @Binds
     @Singleton
-    abstract fun bindAuthService(
-        impl: AuthServiceImpl
-    ): AuthService
+    abstract fun bindStorageVaultRepository(
+        impl: EncryptedStorageVaultRepositoryImpl
+    ): StorageVaultRepository
 }

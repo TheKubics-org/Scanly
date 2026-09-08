@@ -42,11 +42,11 @@ import java.util.Locale
 fun CloudScreen(
     viewModel: CloudViewModel = hiltViewModel(),
     onNavigateToDashboard: () -> Unit,
-    onNavigateToAuth: () -> Unit,
+    onNavigateToProviders: () -> Unit,
     onDocumentClick: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val currentUser by viewModel.currentUser.collectAsState()
+    val activeConfig by viewModel.activeConfig.collectAsState()
     val cloudDocuments by viewModel.cloudDocuments.collectAsState()
     val storageQuota by viewModel.storageQuota.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
@@ -94,11 +94,11 @@ fun CloudScreen(
                         }
                     }
 
-                    IconButton(onClick = onNavigateToAuth) {
+                    IconButton(onClick = onNavigateToProviders) {
                         Icon(
-                            imageVector = if (currentUser != null) Icons.Default.AccountCircle else Icons.Outlined.AccountCircle,
-                            contentDescription = stringResource(R.string.auth_profile_title),
-                            tint = if (currentUser != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            imageVector = Icons.Outlined.CloudQueue,
+                            contentDescription = "Storage Providers",
+                            tint = if (activeConfig != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
@@ -151,8 +151,8 @@ fun CloudScreen(
                 )
             }
 
-            // Unauthenticated Banner
-            if (currentUser == null) {
+            // Storage Provider Setup Banner
+            if (activeConfig == null) {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -176,23 +176,23 @@ fun CloudScreen(
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Enable Cloud Sync",
+                                    text = "Connect Personal Storage",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Text(
-                                    text = stringResource(R.string.cloud_sign_in_prompt),
+                                    text = "Configure personal Telegram, Cloudflare R2, or Google Drive for decentralized backup",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                                 )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Button(
-                                onClick = onNavigateToAuth,
+                                onClick = onNavigateToProviders,
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text(stringResource(R.string.cloud_sign_in_btn))
+                                Text("Configure")
                             }
                         }
                     }

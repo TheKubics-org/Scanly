@@ -17,7 +17,7 @@ import androidx.room.PrimaryKey
 )
 data class CloudDocumentEntity(
     @PrimaryKey val id: String,
-    val userId: String,
+    val userId: String = "byos_default",
     val localDocumentId: String?,
     val title: String,
     val fileType: String,

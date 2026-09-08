@@ -197,19 +197,21 @@
     <string name="dashboard_sync_all">Force Sync All Documents</string>
     <string name="dashboard_cache_cleared">Offline cache cleared</string>
 
-    <!-- Authentication -->
-    <string name="auth_title_sign_in">Sign In</string>
-    <string name="auth_title_sign_up">Create Account</string>
-    <string name="auth_email">Email Address</string>
-    <string name="auth_password">Password</string>
-    <string name="auth_name">Display Name</string>
-    <string name="auth_btn_sign_in">Sign In</string>
-    <string name="auth_btn_sign_up">Sign Up</string>
-    <string name="auth_btn_sign_out">Sign Out</string>
-    <string name="auth_sign_out_confirm">Are you sure you want to sign out? Your local documents will remain safe.</string>
-    <string name="auth_switch_to_sign_up">Don\'t have an account? Sign Up</string>
-    <string name="auth_switch_to_sign_in">Already have an account? Sign In</string>
-    <string name="auth_profile_title">Cloud Account</string>
+    <!-- BYOS Storage Providers -->
+    <string name="provider_telegram">Telegram Channel &amp; Bot</string>
+    <string name="provider_r2">Cloudflare R2 / S3</string>
+    <string name="provider_drive">Google Drive</string>
+    <string name="provider_test_connection">Test Connection</string>
+    <string name="provider_testing">Testing connection…</string>
+    <string name="provider_test_success">Connection verified!</string>
+    <string name="provider_test_failed">Connection failed</string>
+    <string name="provider_active">Active Destination</string>
+    <string name="provider_bot_token">Bot Token</string>
+    <string name="provider_chat_id">Chat / Channel ID</string>
+    <string name="provider_endpoint_url">Endpoint URL</string>
+    <string name="provider_bucket_name">Bucket Name</string>
+    <string name="provider_access_key">Access Key ID</string>
+    <string name="provider_secret_key">Secret Access Key</string>
 
     <!-- Save Dialog & Actions -->
     <string name="save_dialog_title">Save Document</string>
@@ -231,7 +233,6 @@
     <string name="settings_wifi_only_desc">Do not use cellular mobile data for cloud uploads</string>
     <string name="settings_default_save_action">Default save action</string>
     <string name="settings_cloud_dashboard">Storage dashboard</string>
-    <string name="settings_account">Account</string>
-    <string name="settings_signed_in_as">Signed in as %1$s</string>
-    <string name="settings_not_signed_in">Not signed in (Local only)</string>
+    <string name="settings_storage_providers">Storage Destinations (BYOS)</string>
+    <string name="settings_storage_providers_desc">Configure Telegram, Cloudflare R2, Google Drive</string>
 </resources>
