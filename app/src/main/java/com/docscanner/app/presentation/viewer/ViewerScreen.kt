@@ -10,10 +10,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +45,7 @@ fun ViewerScreen(
     val ocrLoading by viewModel.ocrLoading.collectAsState()
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var showOverflowMenu by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showOcrSheet by remember { mutableStateOf(false) }
@@ -172,16 +176,70 @@ fun ViewerScreen(
                 }
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // Zoomable Horizontal Pager
-                    HorizontalPager(
-                        state = pagerState,
+                    // Zoomable Horizontal Pager Container with Navigation Arrows
+                    Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
-                    ) { pageIndex ->
-                        val page = pages.getOrNull(pageIndex)
-                        if (page != null) {
-                            ZoomablePageItem(page = page)
+                    ) {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxSize()
+                        ) { pageIndex ->
+                            val page = pages.getOrNull(pageIndex)
+                            if (page != null) {
+                                ZoomablePageItem(page = page)
+                            }
+                        }
+
+                        // Floating Previous Arrow
+                        if (pages.size > 1 && pagerState.currentPage > 0) {
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.CenterStart)
+                                    .padding(start = 12.dp)
+                                    .size(44.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.88f),
+                                        CircleShape
+                                    )
+                            ) {
+                                Icon(
+                                    Icons.Default.ChevronLeft,
+                                    contentDescription = "Previous Page",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        // Floating Next Arrow
+                        if (pages.size > 1 && pagerState.currentPage < pages.size - 1) {
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(end = 12.dp)
+                                    .size(44.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.88f),
+                                        CircleShape
+                                    )
+                            ) {
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = "Next Page",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
 
@@ -346,22 +404,29 @@ private fun ZoomablePageItem(page: Page) {
                     }
                 )
             }
-            .pointerInput(page.id) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    val newScale = (scale * zoom).coerceIn(1f, 5f)
-                    scale = newScale
+            .then(
+                if (scale > 1.05f) {
+                    Modifier.pointerInput(page.id, scale) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            val newScale = (scale * zoom).coerceIn(1f, 5f)
+                            scale = newScale
 
-                    if (newScale <= 1f) {
-                        offset = Offset.Zero
-                    } else {
-                        val maxOffsetX = (size.width * (newScale - 1f)) / 2f
-                        val maxOffsetY = (size.height * (newScale - 1f)) / 2f
-                        val newOffsetX = (offset.x + pan.x * newScale).coerceIn(-maxOffsetX, maxOffsetX)
-                        val newOffsetY = (offset.y + pan.y * newScale).coerceIn(-maxOffsetY, maxOffsetY)
-                        offset = Offset(newOffsetX, newOffsetY)
+                            if (newScale <= 1.05f) {
+                                scale = 1f
+                                offset = Offset.Zero
+                            } else {
+                                val maxOffsetX = (size.width * (newScale - 1f)) / 2f
+                                val maxOffsetY = (size.height * (newScale - 1f)) / 2f
+                                val newOffsetX = (offset.x + pan.x * newScale).coerceIn(-maxOffsetX, maxOffsetX)
+                                val newOffsetY = (offset.y + pan.y * newScale).coerceIn(-maxOffsetY, maxOffsetY)
+                                offset = Offset(newOffsetX, newOffsetY)
+                            }
+                        }
                     }
+                } else {
+                    Modifier
                 }
-            },
+            ),
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(

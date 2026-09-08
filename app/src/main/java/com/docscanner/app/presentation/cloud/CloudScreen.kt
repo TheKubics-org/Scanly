@@ -30,6 +30,7 @@ import coil3.compose.AsyncImage
 import com.docscanner.app.R
 import com.docscanner.app.domain.model.CloudDocument
 import com.docscanner.app.domain.model.SyncStatus
+import com.scanly.data.storage.StorageProviderType
 import com.docscanner.app.presentation.common.ConfirmationDialog
 import com.docscanner.app.presentation.common.EmptyState
 import java.io.File
@@ -193,6 +194,63 @@ fun CloudScreen(
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text("Configure")
+                            }
+                        }
+                    }
+                }
+            } else {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = when (activeConfig!!.type) {
+                                        StorageProviderType.TELEGRAM -> Icons.Default.Send
+                                        StorageProviderType.CLOUDFLARE_R2 -> Icons.Default.Storage
+                                        StorageProviderType.GOOGLE_DRIVE -> Icons.Default.Cloud
+                                    },
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = activeConfig!!.displayName,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Active Cloud Destination • Decentralized",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = onNavigateToProviders,
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text("Manage")
                             }
                         }
                     }

@@ -21,6 +21,8 @@ import com.docscanner.app.presentation.cloud.CloudScreen
 import com.docscanner.app.presentation.cloud.CloudViewModel
 import com.docscanner.app.presentation.cloud.StorageDashboardScreen
 import com.docscanner.app.presentation.cloud.StorageDashboardViewModel
+import com.docscanner.app.presentation.cloud.StorageProvidersScreen
+import com.docscanner.app.presentation.cloud.StorageProvidersViewModel
 import com.docscanner.app.presentation.common.AppLockGate
 import com.docscanner.app.presentation.editor.EditorScreen
 import com.docscanner.app.presentation.editor.EditorViewModel
@@ -218,8 +220,11 @@ fun AppNavigation(
 
                 // Storage Providers Route
                 composable(Screen.StorageProviders.route) {
-                    // M2 will provide the full StorageProvidersScreen; fallback to popBackStack if accessed
-                    navController.popBackStack()
+                    val viewModel: StorageProvidersViewModel = hiltViewModel()
+                    StorageProvidersScreen(
+                        viewModel = viewModel,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
                 }
 
                 // Search

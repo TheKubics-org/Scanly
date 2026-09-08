@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,17 +13,25 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,9 +67,26 @@ fun EditorScreen(
     val isSaving by viewModel.isSaving.collectAsState()
     val settings by viewModel.settings.collectAsState()
 
+    val scope = rememberCoroutineScope()
     var selectedTab by remember { mutableStateOf(EditorTab.FILTERS) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var showSaveActionDialog by remember { mutableStateOf(false) }
+
+    val pagerState = rememberPagerState(initialPage = selectedPageIndex, pageCount = { pages.size })
+
+    // Sync pager scroll with selected page in ViewModel
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage != selectedPageIndex) {
+            viewModel.selectPage(pagerState.currentPage)
+        }
+    }
+
+    // Sync ViewModel selection with pager
+    LaunchedEffect(selectedPageIndex) {
+        if (pagerState.currentPage != selectedPageIndex && selectedPageIndex in pages.indices) {
+            pagerState.animateScrollToPage(selectedPageIndex)
+        }
+    }
 
     // Add more pages picker launcher
     val pickImagesLauncher = rememberLauncherForActivityResult(
@@ -173,35 +199,161 @@ fun EditorScreen(
                     .background(MaterialTheme.colorScheme.surfaceContainerLowest),
                 contentAlignment = Alignment.Center
             ) {
-                previewBitmap?.let { bitmap ->
-                    androidx.compose.foundation.Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Document Preview",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp)
-                            .graphicsLayer(rotationZ = rotation.toFloat()),
-                        contentScale = ContentScale.Fit
-                    )
-                } ?: currentPage?.let { page ->
-                    AsyncImage(
-                        model = java.io.File(page.processedImagePath.ifBlank { page.originalImagePath }),
-                        contentDescription = "Document Page ${page.pageNumber}",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp)
-                            .graphicsLayer(rotationZ = rotation.toFloat()),
-                        contentScale = ContentScale.Fit
-                    )
-                } ?: Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                if (pages.isEmpty()) {
                     Text(
                         text = "No pages found",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                } else {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { pageIdx ->
+                        val page = pages.getOrNull(pageIdx)
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (pageIdx == selectedPageIndex && previewBitmap != null) {
+                                androidx.compose.foundation.Image(
+                                    bitmap = previewBitmap!!.asImageBitmap(),
+                                    contentDescription = "Document Preview Page ${pageIdx + 1}",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp)
+                                        .graphicsLayer(rotationZ = rotation.toFloat()),
+                                    contentScale = ContentScale.Fit
+                                )
+                            } else if (page != null) {
+                                AsyncImage(
+                                    model = java.io.File(page.processedImagePath.ifBlank { page.originalImagePath }),
+                                    contentDescription = "Document Page ${page.pageNumber}",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp)
+                                        .then(
+                                            if (pageIdx == selectedPageIndex) Modifier.graphicsLayer(rotationZ = rotation.toFloat())
+                                            else Modifier
+                                        ),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
+                    }
+
+                    // Floating Page indicator badge
+                    if (pages.size > 1) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.75f),
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 12.dp)
+                        ) {
+                            Text(
+                                text = "Page ${pagerState.currentPage + 1} of ${pages.size}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.inverseOnSurface,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    // Floating Navigation Arrows
+                    if (pages.size > 1 && pagerState.currentPage > 0) {
+                        FilledTonalIconButton(
+                            onClick = {
+                                scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(start = 8.dp)
+                                .size(36.dp),
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                            )
+                        ) {
+                            Icon(
+                                Icons.Default.ChevronLeft,
+                                contentDescription = "Previous Page",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    if (pages.size > 1 && pagerState.currentPage < pages.size - 1) {
+                        FilledTonalIconButton(
+                            onClick = {
+                                scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp)
+                                .size(36.dp),
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                            )
+                        ) {
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = "Next Page",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Quick thumbnail carousel if multiple pages and not in Pages tab
+            if (pages.size > 1 && selectedTab != EditorTab.PAGES) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items(pages.size) { index ->
+                        val page = pages[index]
+                        val isCurrent = index == selectedPageIndex
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(
+                                width = if (isCurrent) 2.dp else 1.dp,
+                                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                            ),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier
+                                .size(width = 44.dp, height = 58.dp)
+                                .clickable {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(index)
+                                    }
+                                }
+                        ) {
+                            Box(contentAlignment = Alignment.BottomCenter) {
+                                AsyncImage(
+                                    model = java.io.File(page.processedImagePath.ifBlank { page.originalImagePath }),
+                                    contentDescription = "Page ${index + 1}",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Surface(
+                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else Color.Black.copy(alpha = 0.6f),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "${index + 1}",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        color = Color.White,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(vertical = 1.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
