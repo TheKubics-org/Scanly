@@ -28,6 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+
 @Composable
 fun AppLockGate(
     isEnabled: Boolean,
@@ -41,15 +47,42 @@ fun AppLockGate(
     var isAuthenticated by rememberSaveable { mutableStateOf(false) }
     var showRetry by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Re-lock app when sent to background (ON_STOP)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                isAuthenticated = false
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val activity = generateSequence(context) {
         if (it is android.content.ContextWrapper) it.baseContext else null
     }.firstOrNull { it is FragmentActivity } as? FragmentActivity
-    
+
+    // Fail closed: Never bypass biometric lock if activity context is unresolvable
     if (activity == null) {
-        content()
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Secure biometric context unavailable. Please restart the app.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
         return
     }
-    
+
     val authenticate = {
         val executor = ContextCompat.getMainExecutor(activity)
         val biometricPrompt = BiometricPrompt(
@@ -76,11 +109,11 @@ fun AppLockGate(
             .setSubtitle("Use your biometric credential to unlock the app")
             .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
             .build()
-            
+
         biometricPrompt.authenticate(promptInfo)
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isAuthenticated) {
         if (!isAuthenticated) {
             authenticate()
         }

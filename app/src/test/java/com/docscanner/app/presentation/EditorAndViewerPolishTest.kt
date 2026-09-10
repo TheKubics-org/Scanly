@@ -23,6 +23,8 @@ class EditorAndViewerPolishTest {
     private val settingsRepository = mockk<com.docscanner.app.domain.repository.SettingsRepository>(relaxed = true)
     private val cloudStorageService = mockk<com.docscanner.app.domain.service.cloud.CloudStorageService>(relaxed = true)
     private val filterService = mockk<ImageFilterService>(relaxed = true)
+    private val storageVaultRepository = mockk<com.scanly.data.vault.StorageVaultRepository>(relaxed = true)
+    private val cloudSyncManager = mockk<com.docscanner.app.service.sync.CloudSyncManager>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -124,7 +126,7 @@ class EditorAndViewerPolishTest {
         every { repository.getPages("doc1") } returns flowOf(listOf(page))
 
         val savedState = SavedStateHandle(mapOf("documentId" to "doc1"))
-        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService)
+        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService, storageVaultRepository, cloudSyncManager)
         testScheduler.advanceUntilIdle()
 
         assertEquals(0, viewModel.rotation.value)
@@ -165,7 +167,7 @@ class EditorAndViewerPolishTest {
         every { repository.getPages("doc1") } returns flowOf(listOf(page))
 
         val savedState = SavedStateHandle(mapOf("documentId" to "doc1"))
-        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService)
+        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService, storageVaultRepository, cloudSyncManager)
         testScheduler.advanceUntilIdle()
 
         // Adjust Brightness & Contrast
@@ -223,7 +225,7 @@ class EditorAndViewerPolishTest {
         every { repository.getPages("doc1") } returns flowOf(listOf(page))
 
         val savedState = SavedStateHandle(mapOf("documentId" to "doc1"))
-        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService)
+        val viewModel = EditorViewModel(savedState, repository, settingsRepository, cloudStorageService, filterService, storageVaultRepository, cloudSyncManager)
         testScheduler.advanceUntilIdle()
 
         assertEquals(FilterType.ORIGINAL, viewModel.currentFilter.value)

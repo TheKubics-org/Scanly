@@ -14,8 +14,14 @@ import com.docscanner.app.domain.model.Document
 import com.docscanner.app.domain.model.Page
 import com.docscanner.app.domain.model.StorageQuota
 import com.docscanner.app.domain.model.SyncStatus
+import com.docscanner.app.domain.model.MarginPreset
+import com.docscanner.app.domain.model.PageSize
+import com.docscanner.app.domain.model.PdfExportOptions
+import com.docscanner.app.domain.model.QualityLevel
 import com.docscanner.app.domain.service.cloud.CloudStorageService
+import com.docscanner.app.service.pdf.PdfGeneratorService
 import com.docscanner.app.util.NetworkMonitor
+import com.scanly.data.vault.StorageVaultRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -36,6 +42,8 @@ class CloudStorageServiceImpl @Inject constructor(
     private val documentDao: DocumentDao,
     private val pageDao: PageDao,
     private val syncQueueDao: SyncQueueDao,
+    private val storageVaultRepository: StorageVaultRepository,
+    private val pdfGeneratorService: PdfGeneratorService,
     private val networkMonitor: NetworkMonitor
 ) : CloudStorageService {
 
@@ -46,23 +54,6 @@ class CloudStorageServiceImpl @Inject constructor(
         onProgress: (Float) -> Unit
     ): Result<CloudDocument> = withContext(Dispatchers.IO) {
         val userId = "byos_default"
-
-        // Calculate total size of document files
-        var totalBytes = 0L
-        pages.forEach { page ->
-            val origFile = File(page.originalImagePath)
-            if (origFile.exists()) totalBytes += origFile.length()
-            val procFile = File(page.processedImagePath)
-            if (procFile.exists() && procFile.absolutePath != origFile.absolutePath) {
-                totalBytes += procFile.length()
-            }
-        }
-        if (pdfFile != null && pdfFile.exists()) {
-            totalBytes += pdfFile.length()
-        }
-        if (totalBytes == 0L) {
-            totalBytes = 250L * 1024L * pages.size.coerceAtLeast(1) // Default estimate if files not directly accessible
-        }
 
         // If offline, queue sync task and mark document as OFFLINE
         if (!networkMonitor.isOnline()) {
@@ -77,26 +68,93 @@ class CloudStorageServiceImpl @Inject constructor(
             return@withContext Result.failure(IllegalStateException("Device is currently offline. Document queued for automatic upload."))
         }
 
+        val provider = storageVaultRepository.getActiveProvider()
+        if (provider == null || !provider.isEnabled) {
+            val queueTask = SyncQueueEntity(
+                id = UUID.randomUUID().toString(),
+                documentId = document.id,
+                actionType = "UPLOAD",
+                status = "PENDING",
+                errorMessage = "No active cloud storage destination configured"
+            )
+            syncQueueDao.upsert(queueTask)
+            documentDao.updateSyncStateOnly(document.id, SyncStatus.SYNC_FAILED.name)
+            return@withContext Result.failure(IllegalStateException("No cloud storage destination configured. Please configure Telegram, Cloudflare R2, or Google Drive in Cloud Settings."))
+        }
+
+        var tempPdfGenerated: File? = null
         try {
             documentDao.updateSyncStateOnly(document.id, SyncStatus.UPLOADING.name)
 
-            // Progress simulation for responsive UX during network transfer
-            for (step in 1..10) {
-                delay(60)
-                onProgress(step / 10f)
+            // Determine file to upload: use pdfFile if available, or generate from pages
+            val fileToUpload: File? = if (pdfFile != null && pdfFile.exists() && pdfFile.length() > 0) {
+                pdfFile
+            } else if (pages.isNotEmpty()) {
+                val safeTitle = document.title.replace(Regex("[^a-zA-Z0-9._-]"), "_").ifBlank { "scan" }
+                val targetPdf = File(context.cacheDir, "${safeTitle}_${document.id}.pdf")
+                val exportOptions = PdfExportOptions(
+                    documentTitle = document.title,
+                    pageSize = PageSize.A4,
+                    quality = QualityLevel.HIGH,
+                    margin = MarginPreset.NORMAL
+                )
+                val genResult = pdfGeneratorService.generatePdf(pages, exportOptions, targetPdf)
+                if (genResult.isSuccess && targetPdf.exists() && targetPdf.length() > 0) {
+                    tempPdfGenerated = targetPdf
+                    targetPdf
+                } else {
+                    val firstPage = pages.firstOrNull()
+                    val imgFile = firstPage?.let { File(it.processedImagePath.ifBlank { it.originalImagePath }) }
+                    if (imgFile != null && imgFile.exists() && imgFile.length() > 0) imgFile else null
+                }
+            } else null
+
+            if (fileToUpload == null || !fileToUpload.exists()) {
+                documentDao.updateSyncStateOnly(document.id, SyncStatus.SYNC_FAILED.name)
+                return@withContext Result.failure(IllegalStateException("No document file available to upload."))
             }
 
-            val cloudId = document.cloudId ?: "cloud_${UUID.randomUUID()}"
+            val isPdf = fileToUpload.name.endsWith(".pdf", ignoreCase = true)
+            val mimeType = if (isPdf) "application/pdf" else "image/jpeg"
+            val safeFileName = "${document.title.replace(Regex("[^a-zA-Z0-9._-]"), "_").ifBlank { "scan" }}.${if (isPdf) "pdf" else "jpg"}"
+
+            val uploadResult = provider.uploadFile(
+                file = fileToUpload,
+                mimeType = mimeType,
+                remotePath = safeFileName,
+                progressCallback = { bytesSent, totalBytes ->
+                    if (totalBytes > 0) {
+                        onProgress((bytesSent.toFloat() / totalBytes).coerceIn(0f, 1f))
+                    }
+                }
+            )
+
+            if (!uploadResult.isSuccess) {
+                documentDao.updateSyncStateOnly(document.id, SyncStatus.SYNC_FAILED.name)
+                val queueTask = SyncQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    documentId = document.id,
+                    actionType = "UPLOAD",
+                    status = "PENDING",
+                    errorMessage = uploadResult.errorMessage
+                )
+                syncQueueDao.upsert(queueTask)
+                return@withContext Result.failure(IllegalStateException(uploadResult.errorMessage ?: "Upload to ${provider.displayName} failed."))
+            }
+
+            val cloudId = uploadResult.remoteId ?: document.cloudId ?: "cloud_${UUID.randomUUID()}"
             val now = System.currentTimeMillis()
+            val totalBytes = uploadResult.bytesUploaded.takeIf { it > 0 } ?: fileToUpload.length()
+
             val cloudDoc = CloudDocument(
                 id = cloudId,
                 localDocumentId = document.id,
                 title = document.title,
-                fileType = if (pdfFile != null) "PDF" else "JPG",
+                fileType = if (isPdf) "PDF" else "JPG",
                 pageCount = pages.size.coerceAtLeast(document.pageCount),
                 fileSize = totalBytes,
                 thumbnailUrl = document.thumbnailPath,
-                cloudFileUrl = pdfFile?.absolutePath,
+                cloudFileUrl = uploadResult.remoteUrl ?: fileToUpload.absolutePath,
                 uploadDate = now,
                 syncStatus = SyncStatus.SYNCED
             )
@@ -128,6 +186,12 @@ class CloudStorageServiceImpl @Inject constructor(
             )
             syncQueueDao.upsert(queueTask)
             Result.failure(e)
+        } finally {
+            tempPdfGenerated?.let {
+                try {
+                    if (it.exists()) it.delete()
+                } catch (_: Exception) {}
+            }
         }
     }
 
@@ -191,6 +255,13 @@ class CloudStorageServiceImpl @Inject constructor(
     override suspend fun deleteCloudDocument(cloudDocumentId: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val entity = cloudDocumentDao.getById(cloudDocumentId)
+            val provider = storageVaultRepository.getActiveProvider()
+            if (provider != null && entity != null) {
+                try {
+                    provider.deleteFile(entity.id)
+                } catch (_: Exception) {}
+            }
+
             if (entity?.localDocumentId != null) {
                 documentDao.updateSyncStatus(
                     docId = entity.localDocumentId,
@@ -243,10 +314,15 @@ class CloudStorageServiceImpl @Inject constructor(
             return@withContext Result.failure(IllegalStateException("Cannot sync while offline"))
         }
 
+        val provider = storageVaultRepository.getActiveProvider()
+            ?: return@withContext Result.failure(IllegalStateException("No active cloud storage destination configured. Please configure Telegram, Cloudflare R2, or Google Drive in Cloud Settings."))
+
         val pendingTasks = syncQueueDao.getPendingTasks()
         var syncedCount = 0
+        val handledDocIds = mutableSetOf<String>()
 
         for (task in pendingTasks) {
+            handledDocIds.add(task.documentId)
             val docEntity = documentDao.getDocumentByIdSync(task.documentId)
             if (docEntity != null && !docEntity.isTrashed) {
                 val pages = pageDao.getPagesForDocumentSync(task.documentId).map { it.toDomain() }
@@ -259,6 +335,18 @@ class CloudStorageServiceImpl @Inject constructor(
                 }
             } else {
                 syncQueueDao.delete(task.id)
+            }
+        }
+
+        // Also sync any other unsynced active documents (e.g. captured before cloud was set up)
+        val unsyncedDocs = documentDao.getUnsyncedDocuments()
+        for (docEntity in unsyncedDocs) {
+            if (!handledDocIds.contains(docEntity.id) && !docEntity.isTrashed) {
+                val pages = pageDao.getPagesForDocumentSync(docEntity.id).map { it.toDomain() }
+                val result = uploadDocument(docEntity.toDomain(), pages)
+                if (result.isSuccess) {
+                    syncedCount++
+                }
             }
         }
 

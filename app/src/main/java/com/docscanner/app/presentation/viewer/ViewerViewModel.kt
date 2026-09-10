@@ -131,6 +131,17 @@ class ViewerViewModel @Inject constructor(
         val currentDoc = _document.value
         val title = (currentDoc?.title ?: "Document").toSafeFileName()
         val exportDir = File(ctx.cacheDir, Constants.PDF_EXPORTS_DIR).apply { mkdirs() }
+
+        // Prune temporary exports older than 24h to prevent disk exhaustion and lingering cache files
+        try {
+            val cutoff = System.currentTimeMillis() - (24 * 60 * 60 * 1000L)
+            exportDir.listFiles()?.forEach { oldFile ->
+                if (oldFile.lastModified() < cutoff) {
+                    oldFile.delete()
+                }
+            }
+        } catch (_: Exception) {}
+
         val outputFile = File(exportDir, "${title}_${System.currentTimeMillis()}.pdf")
         val result = pdfGeneratorService.generatePdf(_pages.value, options, outputFile)
         if (result.isSuccess) {

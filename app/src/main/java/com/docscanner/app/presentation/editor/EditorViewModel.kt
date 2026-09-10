@@ -15,6 +15,8 @@ import com.docscanner.app.domain.repository.DocumentRepository
 import com.docscanner.app.domain.repository.SettingsRepository
 import com.docscanner.app.domain.service.cloud.CloudStorageService
 import com.docscanner.app.service.filter.ImageFilterService
+import com.docscanner.app.service.sync.CloudSyncManager
+import com.scanly.data.vault.StorageVaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -30,7 +32,9 @@ class EditorViewModel @Inject constructor(
     private val documentRepository: DocumentRepository,
     private val settingsRepository: SettingsRepository,
     private val cloudStorageService: CloudStorageService,
-    private val imageFilterService: ImageFilterService
+    private val imageFilterService: ImageFilterService,
+    private val storageVaultRepository: StorageVaultRepository,
+    private val cloudSyncManager: CloudSyncManager
 ) : ViewModel() {
 
     val documentId: String = checkNotNull(savedStateHandle["documentId"])
@@ -248,7 +252,7 @@ class EditorViewModel @Inject constructor(
     }
 
     fun saveChanges(
-        action: SaveAction = SaveAction.SAVE_LOCAL,
+        action: SaveAction = SaveAction.SAVE_AND_UPLOAD,
         rememberAction: Boolean = false,
         onSaved: () -> Unit = {}
     ) {
@@ -307,9 +311,19 @@ class EditorViewModel @Inject constructor(
             if (updatedDoc != null) {
                 documentRepository.updateDocument(updatedDoc)
 
-                // Trigger cloud upload if requested
-                if (action == SaveAction.UPLOAD_TO_CLOUD || action == SaveAction.SAVE_AND_UPLOAD) {
-                    cloudStorageService.uploadDocument(updatedDoc, _pages.value)
+                val activeProvider = storageVaultRepository.getActiveProvider()
+                val currentSettings = settingsRepository.settings.first()
+                val isCloudAutoEnabled = activeProvider != null || currentSettings.cloudBackupEnabled || currentSettings.autoSyncEnabled
+                val shouldUpload = action == SaveAction.UPLOAD_TO_CLOUD ||
+                    action == SaveAction.SAVE_AND_UPLOAD ||
+                    (action == SaveAction.SAVE_LOCAL && isCloudAutoEnabled)
+
+                // Auto-upload to active BYOS cloud destination (Telegram/R2/Drive)
+                if (shouldUpload) {
+                    try {
+                        cloudStorageService.uploadDocument(updatedDoc, _pages.value)
+                    } catch (_: Exception) {}
+                    cloudSyncManager.triggerImmediateSync()
                 }
             }
 

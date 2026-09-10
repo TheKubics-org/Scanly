@@ -1,7 +1,10 @@
-﻿package com.docscanner.app.presentation.cloud
+package com.docscanner.app.presentation.cloud
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.docscanner.app.domain.model.SaveAction
+import com.docscanner.app.domain.repository.SettingsRepository
+import com.docscanner.app.service.sync.CloudSyncManager
 import com.scanly.data.storage.GoogleDriveAuthType
 import com.scanly.data.storage.StorageConfig
 import com.scanly.data.storage.StorageProviderRegistry
@@ -14,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,7 +32,9 @@ data class ProviderTestState(
 @HiltViewModel
 class StorageProvidersViewModel @Inject constructor(
     private val vaultRepository: StorageVaultRepository,
-    private val registry: StorageProviderRegistry
+    private val registry: StorageProviderRegistry,
+    private val settingsRepository: SettingsRepository,
+    private val cloudSyncManager: CloudSyncManager
 ) : ViewModel() {
 
     val configs: StateFlow<List<StorageConfig>> = vaultRepository.observeConfigs()
@@ -102,7 +108,23 @@ class StorageProvidersViewModel @Inject constructor(
 
             try {
                 vaultRepository.saveConfig(config)
-                _userMessage.value = "${config.displayName} saved successfully"
+                vaultRepository.setActiveProviderId(config.id)
+
+                // Auto-enable cloud backup & trigger immediate sync of unsynced documents
+                try {
+                    val currentSettings = settingsRepository.settings.first()
+                    settingsRepository.updateSettings(
+                        currentSettings.copy(
+                            cloudBackupEnabled = true,
+                            autoSyncEnabled = true,
+                            wifiOnlyUpload = false,
+                            defaultSaveAction = SaveAction.SAVE_AND_UPLOAD
+                        )
+                    )
+                    cloudSyncManager.triggerImmediateSync()
+                } catch (_: Exception) {}
+
+                _userMessage.value = "${config.displayName} saved & set as active cloud destination"
                 onSaved()
             } catch (e: Exception) {
                 _userMessage.value = "Failed to save: ${e.localizedMessage}"
@@ -126,6 +148,21 @@ class StorageProvidersViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 vaultRepository.setActiveProviderId(id)
+
+                // Auto-enable cloud backup & trigger immediate sync
+                try {
+                    val currentSettings = settingsRepository.settings.first()
+                    settingsRepository.updateSettings(
+                        currentSettings.copy(
+                            cloudBackupEnabled = true,
+                            autoSyncEnabled = true,
+                            wifiOnlyUpload = false,
+                            defaultSaveAction = SaveAction.SAVE_AND_UPLOAD
+                        )
+                    )
+                    cloudSyncManager.triggerImmediateSync()
+                } catch (_: Exception) {}
+
                 _userMessage.value = "Active destination updated"
             } catch (e: Exception) {
                 _userMessage.value = "Failed to update active destination: ${e.localizedMessage}"
@@ -141,6 +178,9 @@ class StorageProvidersViewModel @Inject constructor(
                 is StorageConfig.GoogleDrive -> config.copy(isEnabled = !config.isEnabled)
             }
             vaultRepository.saveConfig(updated)
+            if (updated.isEnabled) {
+                cloudSyncManager.triggerImmediateSync()
+            }
         }
     }
 }

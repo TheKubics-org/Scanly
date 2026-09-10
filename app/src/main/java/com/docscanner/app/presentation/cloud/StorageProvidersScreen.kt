@@ -1,4 +1,4 @@
-﻿package com.docscanner.app.presentation.cloud
+package com.docscanner.app.presentation.cloud
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -545,6 +545,9 @@ private fun AddOrEditProviderDialog(
                             onValueChange = { tgChatId = it },
                             label = { Text("Target Chat or Channel ID") },
                             placeholder = { Text("e.g. -100123456789 or @my_channel") },
+                            supportingText = {
+                                Text("For channels: Add bot as Admin with 'Post Messages' permission. Supports @channel, -100..., or link")
+                            },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )

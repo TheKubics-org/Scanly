@@ -3,20 +3,31 @@ package com.docscanner.app.presentation.scanner
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.docscanner.app.data.local.dao.SyncQueueDao
+import com.docscanner.app.data.local.entity.SyncQueueEntity
 import com.docscanner.app.domain.repository.DocumentRepository
+import com.docscanner.app.domain.repository.SettingsRepository
+import com.docscanner.app.service.sync.CloudSyncManager
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+import com.scanly.data.vault.StorageVaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 enum class ScanState { IDLE, SCANNING, PROCESSING, COMPLETE, ERROR }
 
 @HiltViewModel
 class ScannerViewModel @Inject constructor(
-    private val documentRepository: DocumentRepository
+    private val documentRepository: DocumentRepository,
+    private val syncQueueDao: SyncQueueDao,
+    private val cloudSyncManager: CloudSyncManager,
+    private val storageVaultRepository: StorageVaultRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _scanState = MutableStateFlow(ScanState.IDLE)
@@ -45,6 +56,24 @@ class ScannerViewModel @Inject constructor(
                 val pagePaths = _scannedPages.value.map { it.toString() }
                 val pdfPath = _pdfUri.value?.toString()
                 val document = documentRepository.createDocument(title, pagePaths, pdfPath)
+
+                // Auto-queue and trigger immediate cloud backup if provider configured or enabled
+                try {
+                    val settings = settingsRepository.settings.first()
+                    val activeProvider = storageVaultRepository.getActiveProvider()
+                    if (activeProvider != null || settings.cloudBackupEnabled) {
+                        syncQueueDao.upsert(
+                            SyncQueueEntity(
+                                id = UUID.randomUUID().toString(),
+                                documentId = document.id,
+                                actionType = "UPLOAD",
+                                status = "PENDING"
+                            )
+                        )
+                        cloudSyncManager.triggerImmediateSync()
+                    }
+                } catch (_: Exception) {}
+
                 onDocumentCreated(document.id)
             } catch (e: Exception) {
                 _scanState.value = ScanState.ERROR

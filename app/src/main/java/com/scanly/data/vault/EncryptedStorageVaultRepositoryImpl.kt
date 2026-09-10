@@ -61,9 +61,20 @@ class EncryptedStorageVaultRepositoryImpl(
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Throwable) {
-            // Fallback to standard SharedPreferences for JVM tests or environments without Android Keystore
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            // Allow plaintext fallback ONLY in JVM test runners without hardware Android Keystore
+            if (isJvmTestEnvironment()) {
+                context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            } else {
+                throw SecurityException("Secure hardware Keystore initialization failed. Cannot persist BYOS credentials insecurely: ${e.localizedMessage}", e)
+            }
         }
+    }
+
+    private fun isJvmTestEnvironment(): Boolean {
+        val vmName = System.getProperty("java.vm.name") ?: ""
+        return vmName.contains("HotSpot", ignoreCase = true) ||
+               vmName.contains("OpenJDK", ignoreCase = true) ||
+               vmName.contains("JVM", ignoreCase = true)
     }
 
     private fun loadInitialState() {
@@ -163,8 +174,10 @@ class EncryptedStorageVaultRepositoryImpl(
 
     override suspend fun getActiveProvider(): StorageProvider? = withContext(ioDispatcher) {
         mutex.withLock {
-            val activeId = prefs.getString(KEY_ACTIVE_PROVIDER_ID, null) ?: return@withContext null
-            val config = readConfigById(activeId) ?: return@withContext null
+            val activeId = prefs.getString(KEY_ACTIVE_PROVIDER_ID, null)
+            val config = (if (activeId != null) readConfigById(activeId) else null)
+                ?: readConfigsFromPrefs().firstOrNull { it.isEnabled }
+                ?: return@withContext null
             registry.createProvider(config)
         }
     }
