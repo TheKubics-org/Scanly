@@ -9,7 +9,7 @@
 # Kotlinx Serialization
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.AnnotationsKt
--keep,allowcreations,allowoptimization class * {
+-keepclassmembers class * {
     @kotlinx.serialization.Serializable *;
 }
 

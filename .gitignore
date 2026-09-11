@@ -17,6 +17,7 @@ PROJECT.md
 *.aab
 *.keystore
 *.jks
+keystore.properties
 push_to_github.bat
 
 # Web & GitHub Pages source
