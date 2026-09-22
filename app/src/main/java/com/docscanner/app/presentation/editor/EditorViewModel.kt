@@ -110,13 +110,13 @@ class EditorViewModel @Inject constructor(
                 _brightness,
                 _contrast
             ) { pagesList, index, filter, brightness, contrast ->
-                listOf(pagesList, index, filter, brightness, contrast)
-            }.collectLatest { args ->
-                val pagesList = args[0] as List<Page>
-                val index = args[1] as Int
-                val filter = args[2] as FilterType
-                val brightness = args[3] as Float
-                val contrast = args[4] as Float
+                EditorPreviewState(pagesList, index, filter, brightness, contrast)
+            }.collectLatest { state ->
+                val pagesList = state.pagesList
+                val index = state.index
+                val filter = state.filter
+                val brightness = state.brightness
+                val contrast = state.contrast
 
                 val currentPage = pagesList.getOrNull(index)
                 if (currentPage != null && currentPage.originalImagePath.isNotBlank() && java.io.File(currentPage.originalImagePath).exists()) {
@@ -359,3 +359,12 @@ class EditorViewModel @Inject constructor(
         _previewBitmap.value = null
     }
 }
+
+private data class EditorPreviewState(
+    val pagesList: List<Page>,
+    val index: Int,
+    val filter: FilterType,
+    val brightness: Float,
+    val contrast: Float
+)
+

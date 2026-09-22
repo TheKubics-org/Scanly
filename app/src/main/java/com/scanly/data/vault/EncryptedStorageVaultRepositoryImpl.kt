@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.scanly.data.vault
 
 import android.content.Context

@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.docscanner.app.R
 import com.docscanner.app.domain.model.SaveAction
 import com.docscanner.app.domain.model.UserSettings.ThemeMode
@@ -222,7 +222,7 @@ fun SettingsScreen(
                 SettingsClickableItem(
                     title = "TheKubics Website",
                     subtitle = "www.thekubics.space",
-                    trailingIcon = Icons.Default.OpenInNew,
+                    trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
                     onClick = {
                         try { uriHandler.openUri("https://www.thekubics.space") } catch (_: Exception) {}
                     }
@@ -233,7 +233,7 @@ fun SettingsScreen(
                 SettingsClickableItem(
                     title = "Scanly Portal",
                     subtitle = "scanly.thekubics.space",
-                    trailingIcon = Icons.Default.OpenInNew,
+                    trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
                     onClick = {
                         try { uriHandler.openUri("https://scanly.thekubics.space") } catch (_: Exception) {}
                     }
@@ -244,7 +244,7 @@ fun SettingsScreen(
                 SettingsClickableItem(
                     title = "GitHub",
                     subtitle = "github.com/TheKubics-org",
-                    trailingIcon = Icons.Default.OpenInNew,
+                    trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
                     onClick = {
                         try { uriHandler.openUri("https://github.com/TheKubics-org") } catch (_: Exception) {}
                     }
@@ -255,7 +255,7 @@ fun SettingsScreen(
                 SettingsClickableItem(
                     title = "Instagram",
                     subtitle = "@_thekubics_ (instagram.com/_thekubics_)",
-                    trailingIcon = Icons.Default.OpenInNew,
+                    trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
                     onClick = {
                         try { uriHandler.openUri("https://instagram.com/_thekubics_") } catch (_: Exception) {}
                     }

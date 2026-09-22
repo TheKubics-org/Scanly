@@ -40,11 +40,12 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Add new columns to documents
+                // Add new columns and index to documents
                 db.execSQL("ALTER TABLE `documents` ADD COLUMN `syncStatus` TEXT NOT NULL DEFAULT 'LOCAL'")
                 db.execSQL("ALTER TABLE `documents` ADD COLUMN `cloudId` TEXT")
                 db.execSQL("ALTER TABLE `documents` ADD COLUMN `fileSize` INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE `documents` ADD COLUMN `lastSyncedAt` INTEGER")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_documents_syncStatus` ON `documents` (`syncStatus`)")
 
                 // Create sync_queue table and indexes
                 db.execSQL("CREATE TABLE IF NOT EXISTS `sync_queue` (`id` TEXT NOT NULL, `documentId` TEXT NOT NULL, `actionType` TEXT NOT NULL, `status` TEXT NOT NULL, `retryCount` INTEGER NOT NULL DEFAULT 0, `errorMessage` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")

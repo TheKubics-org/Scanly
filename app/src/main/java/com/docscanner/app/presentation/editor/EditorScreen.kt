@@ -16,7 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.RotateRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -120,7 +121,7 @@ fun EditorScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -571,7 +572,7 @@ private fun PagesOrganizePanel(
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.RotateRight,
+                    imageVector = Icons.AutoMirrored.Outlined.RotateRight,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )

@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -26,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.docscanner.app.R
 import com.docscanner.app.presentation.common.ConfirmationDialog
 import com.docscanner.app.presentation.common.EmptyState
@@ -221,7 +223,7 @@ private fun ProviderCard(
 ) {
     val (icon, typeName, summaryText) = when (config) {
         is StorageConfig.Telegram -> Triple(
-            Icons.Outlined.Send,
+            Icons.AutoMirrored.Outlined.Send,
             "Telegram Bot",
             "Chat ID: ${config.chatId}"
         )
@@ -497,7 +499,7 @@ private fun AddOrEditProviderDialog(
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.HelpOutline,
+                        imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
                         contentDescription = "Setup Help",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
@@ -522,7 +524,7 @@ private fun AddOrEditProviderDialog(
                             selected = selectedType == StorageProviderType.TELEGRAM,
                             onClick = { selectedType = StorageProviderType.TELEGRAM },
                             label = { Text("Telegram") },
-                            leadingIcon = { Icon(Icons.Outlined.Send, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = null, modifier = Modifier.size(16.dp)) }
                         )
                         FilterChip(
                             selected = selectedType == StorageProviderType.CLOUDFLARE_R2,

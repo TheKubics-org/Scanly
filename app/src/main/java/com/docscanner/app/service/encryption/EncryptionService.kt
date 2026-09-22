@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.docscanner.app.service.encryption
 
 import android.app.Application

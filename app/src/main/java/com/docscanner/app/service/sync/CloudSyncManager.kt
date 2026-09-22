@@ -20,7 +20,7 @@ class CloudSyncManager @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val storageVaultRepository: StorageVaultRepository
 ) {
-    private val workManager = WorkManager.getInstance(context)
+    private val workManager by lazy { WorkManager.getInstance(context) }
     private val scope = CoroutineScope(Dispatchers.IO)
 
     /**

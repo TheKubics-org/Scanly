@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -25,7 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.docscanner.app.R
 import com.docscanner.app.domain.model.CloudDocument
@@ -222,7 +223,7 @@ fun CloudScreen(
                             ) {
                                 Icon(
                                     imageVector = when (activeConfig!!.type) {
-                                        StorageProviderType.TELEGRAM -> Icons.Default.Send
+                                        StorageProviderType.TELEGRAM -> Icons.AutoMirrored.Filled.Send
                                         StorageProviderType.CLOUDFLARE_R2 -> Icons.Default.Storage
                                         StorageProviderType.GOOGLE_DRIVE -> Icons.Default.Cloud
                                     },
