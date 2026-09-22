@@ -43,14 +43,17 @@ class S3StorageProvider(
                 region = config.region
             )
 
-            val requestBuilder = Request.Builder().url(targetUrl).get()
+            val requestBuilder = Request.Builder()
+                .url(targetUrl)
+                .header("Connection", "close")
+                .get()
             for ((k, v) in signedHeaders) {
                 requestBuilder.header(k, v)
             }
 
             client.newCall(requestBuilder.build()).execute().use { response ->
                 val latency = System.currentTimeMillis() - start
-                val body = response.body?.string() ?: ""
+                val body = response.body?.byteStream()?.readNBytes(64 * 1024)?.toString(Charsets.UTF_8) ?: ""
                 if (response.isSuccessful) {
                     StorageTestResult(
                         isSuccess = true,
@@ -89,13 +92,12 @@ class S3StorageProvider(
         try {
             val cleanPath = remotePath.trimStart('/')
             val targetUrl = "$baseEndpoint/${config.bucketName}/$cleanPath"
-            val fileBytes = file.readBytes()
-            val payloadSha256 = AwsSigV4Signer.sha256Hex(fileBytes)
+            val payloadSha256 = AwsSigV4Signer.sha256Hex(file)
             val mediaType = (mimeType.ifBlank { "application/pdf" }).toMediaTypeOrNull()
 
             val initialHeaders = mutableMapOf<String, String>()
             initialHeaders["Content-Type"] = mimeType.ifBlank { "application/pdf" }
-            initialHeaders["Content-Length"] = fileBytes.size.toString()
+            initialHeaders["Content-Length"] = file.length().toString()
 
             val signedHeaders = AwsSigV4Signer.sign(
                 method = "PUT",
@@ -109,7 +111,10 @@ class S3StorageProvider(
             )
 
             val fileBody = file.asRequestBody(mediaType)
-            val requestBuilder = Request.Builder().url(targetUrl).put(fileBody)
+            val requestBuilder = Request.Builder()
+                .url(targetUrl)
+                .header("Connection", "close")
+                .put(fileBody)
             for ((k, v) in signedHeaders) {
                 requestBuilder.header(k, v)
             }
@@ -125,7 +130,7 @@ class S3StorageProvider(
                         bytesUploaded = file.length()
                     )
                 } else {
-                    val body = response.body?.string() ?: ""
+                    val body = response.body?.byteStream()?.readNBytes(64 * 1024)?.toString(Charsets.UTF_8) ?: ""
                     StorageUploadResult(
                         isSuccess = false,
                         errorMessage = "S3 PUT failed (HTTP ${response.code}): ${response.message}\n$body"

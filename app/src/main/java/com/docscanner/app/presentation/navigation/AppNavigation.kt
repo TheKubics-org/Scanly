@@ -23,6 +23,7 @@ import com.docscanner.app.presentation.cloud.StorageDashboardScreen
 import com.docscanner.app.presentation.cloud.StorageDashboardViewModel
 import com.docscanner.app.presentation.cloud.StorageProvidersScreen
 import com.docscanner.app.presentation.cloud.StorageProvidersViewModel
+import com.docscanner.app.presentation.cloud.StorageSetupGuideScreen
 import com.docscanner.app.presentation.common.AppLockGate
 import com.docscanner.app.presentation.editor.EditorScreen
 import com.docscanner.app.presentation.editor.EditorViewModel
@@ -42,6 +43,7 @@ import com.docscanner.app.presentation.trash.TrashScreen
 import com.docscanner.app.presentation.trash.TrashViewModel
 import com.docscanner.app.presentation.viewer.ViewerScreen
 import com.docscanner.app.presentation.viewer.ViewerViewModel
+import com.scanly.data.storage.StorageProviderType
 
 /**
  * Root navigation composable that wires all screens together with Hilt ViewModels and M3 motion transitions.
@@ -60,7 +62,8 @@ fun AppNavigation(
         Screen.Editor.route,
         Screen.Viewer.route,
         Screen.StorageDashboard.route,
-        Screen.StorageProviders.route
+        Screen.StorageProviders.route,
+        Screen.StorageSetupGuide.route
     )
     val shouldShowBottomBar = currentRoute !in hideBottomBarRoutes
 
@@ -223,7 +226,10 @@ fun AppNavigation(
                     val viewModel: StorageProvidersViewModel = hiltViewModel()
                     StorageProvidersScreen(
                         viewModel = viewModel,
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToGuide = { providerType ->
+                            navController.navigate(Screen.StorageSetupGuide.createRoute(providerType))
+                        }
                     )
                 }
 
@@ -255,6 +261,23 @@ fun AppNavigation(
                     val viewModel: TrashViewModel = hiltViewModel()
                     TrashScreen(
                         viewModel = viewModel,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+
+                // Storage Setup Guide (per-provider help)
+                composable(
+                    route = Screen.StorageSetupGuide.route,
+                    arguments = listOf(
+                        navArgument("providerType") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val providerTypeStr = backStackEntry.arguments?.getString("providerType")
+                    val providerType = runCatching {
+                        StorageProviderType.valueOf(providerTypeStr ?: "TELEGRAM")
+                    }.getOrDefault(StorageProviderType.TELEGRAM)
+                    StorageSetupGuideScreen(
+                        providerType = providerType,
                         onNavigateBack = { navController.popBackStack() }
                     )
                 }

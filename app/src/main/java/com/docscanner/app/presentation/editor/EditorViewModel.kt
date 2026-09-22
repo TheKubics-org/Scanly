@@ -119,39 +119,52 @@ class EditorViewModel @Inject constructor(
                 val contrast = args[4] as Float
 
                 val currentPage = pagesList.getOrNull(index)
-                if (currentPage != null) {
+                if (currentPage != null && currentPage.originalImagePath.isNotBlank() && java.io.File(currentPage.originalImagePath).exists()) {
                     try {
-                        if (originalPreviewBitmap == null || lastLoadedPageIndex != index) {
-                            val options = BitmapFactory.Options().apply {
-                                inSampleSize = 2
-                                inPreferredConfig = Bitmap.Config.ARGB_8888
-                                inMutable = true
-                            }
-                            originalPreviewBitmap?.recycle()
-                            originalPreviewBitmap = BitmapFactory.decodeFile(currentPage.originalImagePath, options)
-                            lastLoadedPageIndex = index
+                        val adjusted = withContext(Dispatchers.Default) {
+                            runCatching {
+                                if (originalPreviewBitmap == null || lastLoadedPageIndex != index) {
+                                    val options = BitmapFactory.Options().apply {
+                                        inSampleSize = 2
+                                        inPreferredConfig = Bitmap.Config.ARGB_8888
+                                        inMutable = true
+                                    }
+                                    originalPreviewBitmap?.recycle()
+                                    originalPreviewBitmap = BitmapFactory.decodeFile(currentPage.originalImagePath, options)
+                                    lastLoadedPageIndex = index
+                                }
+
+                                val base = originalPreviewBitmap
+                                if (base != null) {
+                                    val rotated = if (_rotation.value != 0) {
+                                        imageFilterService.rotateImage(base, _rotation.value.toFloat())
+                                    } else {
+                                        base
+                                    }
+
+                                    val filtered = imageFilterService.applyFilter(rotated, filter)
+                                    val finalBitmap = if (brightness != 0f || contrast != 0f) {
+                                        imageFilterService.applyAdjustments(filtered, brightness, contrast)
+                                    } else {
+                                        filtered
+                                    }
+                                    if (rotated != base && rotated != finalBitmap) {
+                                        rotated.recycle()
+                                    }
+                                    if (filtered != finalBitmap && filtered != base) {
+                                        filtered.recycle()
+                                    }
+                                    finalBitmap
+                                } else null
+                            }.getOrNull()
                         }
 
-                        val base = originalPreviewBitmap
-                        if (base != null) {
-                            val rotated = if (_rotation.value != 0) {
-                                imageFilterService.rotateImage(base, _rotation.value.toFloat())
-                            } else {
-                                base
-                            }
-
-                            val filtered = imageFilterService.applyFilter(rotated, filter)
-                            val adjusted = if (brightness != 0f || contrast != 0f) {
-                                imageFilterService.applyAdjustments(filtered, brightness, contrast)
-                            } else {
-                                filtered
-                            }
-
-                            _previewBitmap.value = adjusted
-                        } else {
-                            _previewBitmap.value = null
+                        val oldPreview = _previewBitmap.value
+                        _previewBitmap.value = adjusted
+                        if (oldPreview != null && oldPreview != adjusted && oldPreview != originalPreviewBitmap && !oldPreview.isRecycled) {
+                            oldPreview.recycle()
                         }
-                    } catch (e: Exception) {
+                    } catch (e: Throwable) {
                         _previewBitmap.value = null
                     }
                 } else {
@@ -264,6 +277,7 @@ class EditorViewModel @Inject constructor(
             }
 
             val pageList = _pages.value
+            var finalPages = pageList
             val currentPage = pageList.getOrNull(_selectedPageIndex.value)
             if (currentPage != null) {
                 var processedPath = currentPage.processedImagePath
@@ -305,6 +319,9 @@ class EditorViewModel @Inject constructor(
                     thumbnailPath = processedPath
                 )
                 documentRepository.updatePage(updatedPage)
+
+                finalPages = pageList.map { if (it.id == updatedPage.id) updatedPage else it }
+                _pages.value = finalPages
             }
 
             val updatedDoc = _document.value?.copy(updatedAt = System.currentTimeMillis())
@@ -321,7 +338,7 @@ class EditorViewModel @Inject constructor(
                 // Auto-upload to active BYOS cloud destination (Telegram/R2/Drive)
                 if (shouldUpload) {
                     try {
-                        cloudStorageService.uploadDocument(updatedDoc, _pages.value)
+                        cloudStorageService.uploadDocument(updatedDoc, finalPages)
                     } catch (_: Exception) {}
                     cloudSyncManager.triggerImmediateSync()
                 }
@@ -332,5 +349,13 @@ class EditorViewModel @Inject constructor(
                 onSaved()
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        originalPreviewBitmap?.recycle()
+        originalPreviewBitmap = null
+        _previewBitmap.value?.recycle()
+        _previewBitmap.value = null
     }
 }

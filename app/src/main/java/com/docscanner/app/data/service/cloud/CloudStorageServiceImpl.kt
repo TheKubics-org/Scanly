@@ -21,6 +21,7 @@ import com.docscanner.app.domain.model.QualityLevel
 import com.docscanner.app.domain.service.cloud.CloudStorageService
 import com.docscanner.app.service.pdf.PdfGeneratorService
 import com.docscanner.app.util.NetworkMonitor
+import com.docscanner.app.util.ScanlyLogger
 import com.scanly.data.vault.StorageVaultRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,12 @@ import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+
+/** Allowed file extensions for upload — prevents accidental upload of DB or keystore files. */
+private val ALLOWED_UPLOAD_EXTENSIONS = setOf("pdf", "jpg", "jpeg", "png")
+
+/** Max retry attempts before a sync queue entry is abandoned to prevent infinite loops. */
+private const val MAX_SYNC_RETRIES = 3
 
 @Singleton
 class CloudStorageServiceImpl @Inject constructor(
@@ -53,10 +60,14 @@ class CloudStorageServiceImpl @Inject constructor(
         pdfFile: File?,
         onProgress: (Float) -> Unit
     ): Result<CloudDocument> = withContext(Dispatchers.IO) {
+        val docShortId = ScanlyLogger.shortId(document.id)
         val userId = "byos_default"
+
+        ScanlyLogger.cloudInfo("UPLOAD_START doc=$docShortId pages=${pages.size}")
 
         // If offline, queue sync task and mark document as OFFLINE
         if (!networkMonitor.isOnline()) {
+            ScanlyLogger.cloudWarn("UPLOAD_QUEUED_OFFLINE doc=$docShortId — device is offline")
             val queueTask = SyncQueueEntity(
                 id = UUID.randomUUID().toString(),
                 documentId = document.id,
@@ -70,6 +81,7 @@ class CloudStorageServiceImpl @Inject constructor(
 
         val provider = storageVaultRepository.getActiveProvider()
         if (provider == null || !provider.isEnabled) {
+            ScanlyLogger.cloudWarn("UPLOAD_SKIP doc=$docShortId — no active provider configured")
             val queueTask = SyncQueueEntity(
                 id = UUID.randomUUID().toString(),
                 documentId = document.id,
@@ -81,6 +93,8 @@ class CloudStorageServiceImpl @Inject constructor(
             documentDao.updateSyncStateOnly(document.id, SyncStatus.SYNC_FAILED.name)
             return@withContext Result.failure(IllegalStateException("No cloud storage destination configured. Please configure Telegram, Cloudflare R2, or Google Drive in Cloud Settings."))
         }
+
+        ScanlyLogger.cloudInfo("UPLOAD_PROVIDER doc=$docShortId provider=${provider.type.name}")
 
         var tempPdfGenerated: File? = null
         try {
@@ -103,6 +117,7 @@ class CloudStorageServiceImpl @Inject constructor(
                     tempPdfGenerated = targetPdf
                     targetPdf
                 } else {
+                    ScanlyLogger.cloudWarn("PDF_GEN_FAILED doc=$docShortId — falling back to first page image")
                     val firstPage = pages.firstOrNull()
                     val imgFile = firstPage?.let { File(it.processedImagePath.ifBlank { it.originalImagePath }) }
                     if (imgFile != null && imgFile.exists() && imgFile.length() > 0) imgFile else null
@@ -110,14 +125,26 @@ class CloudStorageServiceImpl @Inject constructor(
             } else null
 
             if (fileToUpload == null || !fileToUpload.exists()) {
+                ScanlyLogger.cloudError("UPLOAD_FAILED doc=$docShortId — no file to upload")
                 documentDao.updateSyncStateOnly(document.id, SyncStatus.SYNC_FAILED.name)
                 return@withContext Result.failure(IllegalStateException("No document file available to upload."))
             }
 
-            val isPdf = fileToUpload.name.endsWith(".pdf", ignoreCase = true)
+            // Security: reject disallowed file extensions
+            val fileExtension = fileToUpload.extension.lowercase()
+            if (fileExtension !in ALLOWED_UPLOAD_EXTENSIONS) {
+                ScanlyLogger.securityWarn("UPLOAD_BLOCKED doc=$docShortId — disallowed extension .$fileExtension")
+                documentDao.updateSyncStateOnly(document.id, SyncStatus.SYNC_FAILED.name)
+                return@withContext Result.failure(SecurityException("Upload blocked: file type '.$fileExtension' is not allowed."))
+            }
+
+            ScanlyLogger.cloudInfo("UPLOAD_FILE doc=$docShortId ext=.$fileExtension size=${ScanlyLogger.formatBytes(fileToUpload.length())}")
+
+            val isPdf = fileExtension == "pdf"
             val mimeType = if (isPdf) "application/pdf" else "image/jpeg"
             val safeFileName = "${document.title.replace(Regex("[^a-zA-Z0-9._-]"), "_").ifBlank { "scan" }}.${if (isPdf) "pdf" else "jpg"}"
 
+            val startTime = System.currentTimeMillis()
             val uploadResult = provider.uploadFile(
                 file = fileToUpload,
                 mimeType = mimeType,
@@ -128,8 +155,10 @@ class CloudStorageServiceImpl @Inject constructor(
                     }
                 }
             )
+            val elapsedMs = System.currentTimeMillis() - startTime
 
             if (!uploadResult.isSuccess) {
+                ScanlyLogger.cloudError("UPLOAD_FAILED doc=$docShortId provider=${provider.type.name} msg=${uploadResult.errorMessage}")
                 documentDao.updateSyncStateOnly(document.id, SyncStatus.SYNC_FAILED.name)
                 val queueTask = SyncQueueEntity(
                     id = UUID.randomUUID().toString(),
@@ -142,12 +171,19 @@ class CloudStorageServiceImpl @Inject constructor(
                 return@withContext Result.failure(IllegalStateException(uploadResult.errorMessage ?: "Upload to ${provider.displayName} failed."))
             }
 
-            val cloudId = uploadResult.remoteId ?: document.cloudId ?: "cloud_${UUID.randomUUID()}"
+            // Security: verify remoteId returned before marking SYNCED
+            val cloudId = uploadResult.remoteId
+            if (cloudId.isNullOrBlank()) {
+                ScanlyLogger.cloudWarn("UPLOAD_NO_REMOTE_ID doc=$docShortId — provider returned no ID, using local fallback")
+            }
+            val resolvedCloudId = cloudId ?: document.cloudId ?: "cloud_${UUID.randomUUID()}"
             val now = System.currentTimeMillis()
             val totalBytes = uploadResult.bytesUploaded.takeIf { it > 0 } ?: fileToUpload.length()
 
+            ScanlyLogger.cloudInfo("UPLOAD_SUCCESS doc=$docShortId size=${ScanlyLogger.formatBytes(totalBytes)} elapsed=${elapsedMs}ms provider=${provider.type.name}")
+
             val cloudDoc = CloudDocument(
-                id = cloudId,
+                id = resolvedCloudId,
                 localDocumentId = document.id,
                 title = document.title,
                 fileType = if (isPdf) "PDF" else "JPG",
@@ -166,7 +202,7 @@ class CloudStorageServiceImpl @Inject constructor(
             documentDao.updateSyncStatus(
                 docId = document.id,
                 status = SyncStatus.SYNCED.name,
-                cloudId = cloudId,
+                cloudId = resolvedCloudId,
                 fileSize = totalBytes,
                 lastSyncedAt = now
             )
@@ -176,6 +212,7 @@ class CloudStorageServiceImpl @Inject constructor(
 
             Result.success(cloudDoc)
         } catch (e: Exception) {
+            ScanlyLogger.cloudError("UPLOAD_EXCEPTION doc=$docShortId", e)
             documentDao.updateSyncStateOnly(document.id, SyncStatus.SYNC_FAILED.name)
             val queueTask = SyncQueueEntity(
                 id = UUID.randomUUID().toString(),
@@ -248,6 +285,7 @@ class CloudStorageServiceImpl @Inject constructor(
 
             Result.success(doc)
         } catch (e: Exception) {
+            ScanlyLogger.cloudError("DOWNLOAD_EXCEPTION cloudId=${ScanlyLogger.shortId(cloudDocumentId)}", e)
             Result.failure(e)
         }
     }
@@ -259,7 +297,10 @@ class CloudStorageServiceImpl @Inject constructor(
             if (provider != null && entity != null) {
                 try {
                     provider.deleteFile(entity.id)
-                } catch (_: Exception) {}
+                    ScanlyLogger.cloudInfo("DELETE_SUCCESS cloudId=${ScanlyLogger.shortId(cloudDocumentId)} provider=${provider.type.name}")
+                } catch (e: Exception) {
+                    ScanlyLogger.cloudWarn("DELETE_REMOTE_FAILED cloudId=${ScanlyLogger.shortId(cloudDocumentId)} — ${e.message}")
+                }
             }
 
             if (entity?.localDocumentId != null) {
@@ -274,6 +315,7 @@ class CloudStorageServiceImpl @Inject constructor(
             cloudDocumentDao.delete(cloudDocumentId)
             Result.success(Unit)
         } catch (e: Exception) {
+            ScanlyLogger.cloudError("DELETE_EXCEPTION cloudId=${ScanlyLogger.shortId(cloudDocumentId)}", e)
             Result.failure(e)
         }
     }
@@ -311,17 +353,30 @@ class CloudStorageServiceImpl @Inject constructor(
 
     override suspend fun syncPendingDocuments(): Result<Int> = withContext(Dispatchers.IO) {
         if (!networkMonitor.isOnline()) {
+            ScanlyLogger.syncWarn("SYNC_PENDING_SKIP — device is offline")
             return@withContext Result.failure(IllegalStateException("Cannot sync while offline"))
         }
 
         val provider = storageVaultRepository.getActiveProvider()
-            ?: return@withContext Result.failure(IllegalStateException("No active cloud storage destination configured. Please configure Telegram, Cloudflare R2, or Google Drive in Cloud Settings."))
+            ?: run {
+                ScanlyLogger.syncWarn("SYNC_PENDING_SKIP — no active provider configured")
+                return@withContext Result.failure(IllegalStateException("No active cloud storage destination configured. Please configure Telegram, Cloudflare R2, or Google Drive in Cloud Settings."))
+            }
 
         val pendingTasks = syncQueueDao.getPendingTasks()
+        ScanlyLogger.syncInfo("SYNC_PENDING_START count=${pendingTasks.size} provider=${provider.type.name}")
+
         var syncedCount = 0
         val handledDocIds = mutableSetOf<String>()
 
         for (task in pendingTasks) {
+            // Security: skip tasks that have exceeded max retries to prevent infinite loops
+            if ((task.retryCount ?: 0) >= MAX_SYNC_RETRIES) {
+                ScanlyLogger.syncWarn("SYNC_SKIP_MAX_RETRIES doc=${ScanlyLogger.shortId(task.documentId)} retries=${task.retryCount}")
+                syncQueueDao.delete(task.id)
+                continue
+            }
+
             handledDocIds.add(task.documentId)
             val docEntity = documentDao.getDocumentByIdSync(task.documentId)
             if (docEntity != null && !docEntity.isTrashed) {
@@ -350,6 +405,7 @@ class CloudStorageServiceImpl @Inject constructor(
             }
         }
 
+        ScanlyLogger.syncInfo("SYNC_PENDING_DONE synced=$syncedCount")
         Result.success(syncedCount)
     }
 }

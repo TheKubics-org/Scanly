@@ -53,12 +53,13 @@ class GoogleDriveStorageProvider(
             val request = Request.Builder()
                 .url(url)
                 .header("Authorization", "Bearer $token")
+                .header("Connection", "close")
                 .get()
                 .build()
 
             client.newCall(request).execute().use { response ->
                 val latency = System.currentTimeMillis() - start
-                val body = response.body?.string() ?: ""
+                val body = response.body?.byteStream()?.readNBytes(64 * 1024)?.toString(Charsets.UTF_8) ?: ""
                 if (response.isSuccessful) {
                     val userEmail = extractJsonString(body, "emailAddress") ?: "Authorized User"
                     StorageTestResult(
@@ -106,13 +107,14 @@ class GoogleDriveStorageProvider(
             val request = Request.Builder()
                 .url("$apiHost/upload/drive/v3/files?uploadType=multipart")
                 .header("Authorization", "Bearer $token")
+                .header("Connection", "close")
                 .post(multipartBody)
                 .build()
 
             progressCallback?.invoke(file.length(), file.length())
 
             client.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: ""
+                val body = response.body?.byteStream()?.readNBytes(64 * 1024)?.toString(Charsets.UTF_8) ?: ""
                 if (response.isSuccessful) {
                     val fileId = extractJsonString(body, "id") ?: "drive_${System.currentTimeMillis()}"
                     StorageUploadResult(

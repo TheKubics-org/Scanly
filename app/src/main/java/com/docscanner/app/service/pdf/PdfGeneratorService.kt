@@ -92,8 +92,52 @@ class PdfGeneratorService @Inject constructor() {
 
 
     fun printPdf(context: Context, file: File) {
-        val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
-        // A complete implementation requires a custom PrintDocumentAdapter.
+        val printManager = context.getSystemService(Context.PRINT_SERVICE) as? PrintManager ?: return
+        val printAdapter = object : android.print.PrintDocumentAdapter() {
+            override fun onLayout(
+                oldAttributes: android.print.PrintAttributes?,
+                newAttributes: android.print.PrintAttributes?,
+                cancellationSignal: android.os.CancellationSignal?,
+                callback: LayoutResultCallback?,
+                extras: android.os.Bundle?
+            ) {
+                if (cancellationSignal?.isCanceled == true) {
+                    callback?.onLayoutCancelled()
+                    return
+                }
+                val info = android.print.PrintDocumentInfo.Builder(file.name)
+                    .setContentType(android.print.PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                    .setPageCount(android.print.PrintDocumentInfo.PAGE_COUNT_UNKNOWN)
+                    .build()
+                callback?.onLayoutFinished(info, true)
+            }
+
+            override fun onWrite(
+                pages: Array<out android.print.PageRange>?,
+                destination: android.os.ParcelFileDescriptor?,
+                cancellationSignal: android.os.CancellationSignal?,
+                callback: WriteResultCallback?
+            ) {
+                if (destination == null) {
+                    callback?.onWriteFailed("Destination file descriptor is null")
+                    return
+                }
+                try {
+                    java.io.FileInputStream(file).use { input ->
+                        java.io.FileOutputStream(destination.fileDescriptor).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    callback?.onWriteFinished(arrayOf(android.print.PageRange.ALL_PAGES))
+                } catch (e: Exception) {
+                    callback?.onWriteFailed(e.localizedMessage)
+                }
+            }
+        }
+        val attributes = android.print.PrintAttributes.Builder()
+            .setMediaSize(android.print.PrintAttributes.MediaSize.ISO_A4)
+            .build()
+        printManager.print(file.nameWithoutExtension, printAdapter, attributes)
     }
 
     private fun getDimensions(pageSize: PageSize, imgWidth: Int, imgHeight: Int): Pair<Int, Int> {

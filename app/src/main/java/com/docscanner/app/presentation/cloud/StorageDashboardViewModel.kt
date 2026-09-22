@@ -27,8 +27,10 @@ class StorageDashboardViewModel @Inject constructor(
         )
 
     fun clearCloudCache(context: Context) {
-        viewModelScope.launch {
-            context.cacheDir.deleteRecursively()
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            context.cacheDir.listFiles()?.forEach { file ->
+                runCatching { file.deleteRecursively() }
+            }
         }
     }
 

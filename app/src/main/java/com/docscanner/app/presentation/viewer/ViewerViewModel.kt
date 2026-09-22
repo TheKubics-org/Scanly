@@ -93,6 +93,9 @@ class ViewerViewModel @Inject constructor(
                     .addOnSuccessListener { visionText ->
                         _ocrText.value = visionText.text
                         _ocrLoading.value = false
+                        viewModelScope.launch {
+                            documentRepository.updateOcrText(documentId, page.id, visionText.text)
+                        }
                         recognizer.close()
                     }
                     .addOnFailureListener {

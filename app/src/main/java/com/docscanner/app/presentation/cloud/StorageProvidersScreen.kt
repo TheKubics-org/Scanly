@@ -39,7 +39,8 @@ import java.util.UUID
 @Composable
 fun StorageProvidersScreen(
     viewModel: StorageProvidersViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToGuide: (providerType: String) -> Unit = {}
 ) {
     val configs by viewModel.configs.collectAsState()
     val activeConfig by viewModel.activeConfig.collectAsState()
@@ -160,6 +161,7 @@ fun StorageProvidersScreen(
         AddOrEditProviderDialog(
             existingConfig = null,
             viewModel = viewModel,
+            onNavigateToGuide = onNavigateToGuide,
             onDismiss = {
                 showAddDialog = false
                 viewModel.clearDialogTestState()
@@ -177,6 +179,7 @@ fun StorageProvidersScreen(
         AddOrEditProviderDialog(
             existingConfig = config,
             viewModel = viewModel,
+            onNavigateToGuide = onNavigateToGuide,
             onDismiss = {
                 configToEdit = null
                 viewModel.clearDialogTestState()
@@ -392,6 +395,7 @@ private fun ProviderCard(
 private fun AddOrEditProviderDialog(
     existingConfig: StorageConfig?,
     viewModel: StorageProvidersViewModel,
+    onNavigateToGuide: (providerType: String) -> Unit = {},
     onDismiss: () -> Unit,
     onSave: (StorageConfig) -> Unit
 ) {
@@ -482,7 +486,24 @@ private fun AddOrEditProviderDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(if (existingConfig == null) "Add Storage Destination" else "Edit Destination")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(if (existingConfig == null) "Add Storage Destination" else "Edit Destination")
+                IconButton(
+                    onClick = { onNavigateToGuide(selectedType.name) },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.HelpOutline,
+                        contentDescription = "Setup Help",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         },
         text = {
             Column(

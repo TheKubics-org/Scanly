@@ -77,9 +77,9 @@ class SettingsRepositoryImpl @Inject constructor(
             appLockEnabled = preferences[PreferencesKeys.APP_LOCK_ENABLED] ?: false,
             hasSeenOnboarding = preferences[PreferencesKeys.HAS_SEEN_ONBOARDING] ?: false,
             encryptNewDocuments = preferences[PreferencesKeys.ENCRYPT_NEW_DOCUMENTS] ?: false,
-            cloudBackupEnabled = preferences[PreferencesKeys.CLOUD_BACKUP_ENABLED] ?: false,
+            cloudBackupEnabled = preferences[PreferencesKeys.CLOUD_BACKUP_ENABLED] ?: true,
             autoSyncEnabled = preferences[PreferencesKeys.AUTO_SYNC_ENABLED] ?: true,
-            wifiOnlyUpload = preferences[PreferencesKeys.WIFI_ONLY_UPLOAD] ?: true,
+            wifiOnlyUpload = preferences[PreferencesKeys.WIFI_ONLY_UPLOAD] ?: false,
             defaultSaveAction = defaultSaveAction,
             uploadQuality = uploadQuality
         )

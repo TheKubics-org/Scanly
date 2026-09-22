@@ -119,4 +119,9 @@ interface DocumentRepository {
      * Appends new pages to the end of an existing document.
      */
     suspend fun addPages(documentId: String, pageImagePaths: List<String>)
+
+    /**
+     * Updates extracted OCR text for a document and page to enable full-text search.
+     */
+    suspend fun updateOcrText(documentId: String, pageId: String, ocrText: String)
 }

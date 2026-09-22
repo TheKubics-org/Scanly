@@ -44,7 +44,7 @@ class DocumentRepositoryImpl @Inject constructor(
                         input.copyTo(output)
                     }
                 }
-                destFile.absolutePath
+                if (destFile.exists() && destFile.length() > 0L) destFile.absolutePath else sourceUriOrPath
             } else {
                 val sourceFile = File(sourceUriOrPath)
                 if (sourceFile.exists() && sourceFile.absolutePath != destFile.absolutePath) {
@@ -475,6 +475,21 @@ class DocumentRepositoryImpl @Inject constructor(
                 )
                 documentDao.upsert(updatedDoc)
             }
+        }
+    }
+
+    override suspend fun updateOcrText(documentId: String, pageId: String, ocrText: String) = withContext(Dispatchers.IO) {
+        appDatabase.withTransaction {
+            pageDao.updateOcrText(pageId, ocrText, 1.0f)
+            val currentDoc = documentDao.getDocumentByIdSync(documentId)
+            val combinedOcr = if (currentDoc?.ocrText.isNullOrBlank()) {
+                ocrText
+            } else if (!currentDoc?.ocrText.orEmpty().contains(ocrText)) {
+                "${currentDoc?.ocrText}\n\n$ocrText"
+            } else {
+                currentDoc?.ocrText ?: ocrText
+            }
+            documentDao.updateOcrText(documentId, combinedOcr)
         }
     }
 }

@@ -95,6 +95,10 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearCache(context: Context) {
-        context.cacheDir.deleteRecursively()
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            context.cacheDir.listFiles()?.forEach { file ->
+                runCatching { file.deleteRecursively() }
+            }
+        }
     }
 }

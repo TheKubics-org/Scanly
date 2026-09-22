@@ -142,6 +142,7 @@ class EditorAndViewerPolishTest {
 
         viewModel.rotatePage()
         assertEquals(0, viewModel.rotation.value)
+        testScheduler.advanceUntilIdle()
     }
 
     @Test
@@ -200,6 +201,7 @@ class EditorAndViewerPolishTest {
         viewModel.resetAdjustments()
         assertEquals(0.0f, viewModel.brightness.value, 0.001f)
         assertEquals(0.0f, viewModel.contrast.value, 0.001f)
+        testScheduler.advanceUntilIdle()
     }
 
     @Test
@@ -235,6 +237,7 @@ class EditorAndViewerPolishTest {
 
         viewModel.applyFilter(FilterType.COLOR_BOOST)
         assertEquals(FilterType.COLOR_BOOST, viewModel.currentFilter.value)
+        testScheduler.advanceUntilIdle()
     }
 
     @Test

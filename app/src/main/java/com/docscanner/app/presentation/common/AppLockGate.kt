@@ -105,8 +105,8 @@ fun AppLockGate(
         )
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Unlock DocScanner")
-            .setSubtitle("Use your biometric credential to unlock the app")
+            .setTitle("Unlock Scanly")
+            .setSubtitle("Use your biometric credential or screen lock to unlock Scanly")
             .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
             .build()
 

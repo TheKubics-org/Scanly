@@ -20,9 +20,6 @@ class HomeViewModel @Inject constructor(
     private val folderRepository: FolderRepository
 ) : ViewModel() {
 
-    private val _documents = MutableStateFlow<List<Document>>(emptyList())
-    val documents: StateFlow<List<Document>> = _documents.asStateFlow()
-
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 

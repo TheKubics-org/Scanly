@@ -15,14 +15,20 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+import kotlin.math.max
+
+/** Max response body we will read in bytes — guards against memory exhaustion on unexpected large responses. */
+private const val MAX_RESPONSE_BYTES = 1024 * 64L // 64 KB
+
+/** Base upload timeout in seconds. */
+private const val BASE_UPLOAD_TIMEOUT_SEC = 60L
+
+/** Additional seconds per 5 MB of file size. */
+private const val EXTRA_TIMEOUT_PER_5MB_SEC = 30L
 
 class TelegramStorageProvider(
     val config: StorageConfig.Telegram,
-    private val client: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .build(),
+    private val client: OkHttpClient? = null,
     private val customBaseUrl: String? = null
 ) : StorageProvider {
 
@@ -35,16 +41,39 @@ class TelegramStorageProvider(
 
     private val baseUrl: String get() = customBaseUrl ?: "https://api.telegram.org/bot${config.botToken}"
 
+    /** Base OkHttpClient for auth and chat verification requests (short timeouts). */
+    private val baseClient: OkHttpClient = (client?.newBuilder() ?: OkHttpClient.Builder())
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .build()
+
+    /**
+     * Builds a per-upload OkHttpClient with timeout proportional to file size.
+     * Min: 60s. Adds 30s per 5 MB to handle slow connections on large PDFs.
+     */
+    private fun buildUploadClient(fileSizeBytes: Long): OkHttpClient {
+        val extraChunks = (fileSizeBytes / (5 * 1024 * 1024)).coerceAtLeast(0)
+        val writeSec = BASE_UPLOAD_TIMEOUT_SEC + extraChunks * EXTRA_TIMEOUT_PER_5MB_SEC
+        return (client?.newBuilder() ?: OkHttpClient.Builder())
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(writeSec, TimeUnit.SECONDS)
+            .build()
+    }
+
     override suspend fun testConnection(): StorageTestResult = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
         try {
             val meRequest = Request.Builder()
                 .url("$baseUrl/getMe")
+                .header("Connection", "close")
                 .get()
                 .build()
 
-            client.newCall(meRequest).execute().use { response ->
-                val body = response.body?.string() ?: ""
+            baseClient.newCall(meRequest).execute().use { response ->
+                val body = response.body?.byteStream()?.readNBytes(MAX_RESPONSE_BYTES.toInt())
+                    ?.toString(Charsets.UTF_8) ?: ""
                 val latency = System.currentTimeMillis() - start
                 if (!response.isSuccessful || !body.contains("\"ok\":true")) {
                     val desc = extractErrorDescription(body) ?: "HTTP ${response.code}: ${response.message}"
@@ -61,11 +90,13 @@ class TelegramStorageProvider(
 
                 val chatRequest = Request.Builder()
                     .url("$baseUrl/getChat?chat_id=$cleanChatId")
+                    .header("Connection", "close")
                     .get()
                     .build()
 
-                client.newCall(chatRequest).execute().use { chatResponse ->
-                    val chatBody = chatResponse.body?.string() ?: ""
+                baseClient.newCall(chatRequest).execute().use { chatResponse ->
+                    val chatBody = chatResponse.body?.byteStream()?.readNBytes(MAX_RESPONSE_BYTES.toInt())
+                        ?.toString(Charsets.UTF_8) ?: ""
                     val totalLatency = System.currentTimeMillis() - start
                     if (chatResponse.isSuccessful && chatBody.contains("\"ok\":true")) {
                         val chatTitle = extractJsonString(chatBody, "title")
@@ -79,10 +110,12 @@ class TelegramStorageProvider(
                             try {
                                 val memberReq = Request.Builder()
                                     .url("$baseUrl/getChatMember?chat_id=$cleanChatId&user_id=$botId")
+                                    .header("Connection", "close")
                                     .get()
                                     .build()
-                                client.newCall(memberReq).execute().use { mResp ->
-                                    val mBody = mResp.body?.string() ?: ""
+                                baseClient.newCall(memberReq).execute().use { mResp ->
+                                    val mBody = mResp.body?.byteStream()?.readNBytes(MAX_RESPONSE_BYTES.toInt())
+                                        ?.toString(Charsets.UTF_8) ?: ""
                                     if (mResp.isSuccessful && mBody.contains("\"ok\":true")) {
                                         val status = extractJsonString(mBody, "status")
                                         if (status != "administrator" && status != "creator") {
@@ -129,9 +162,11 @@ class TelegramStorageProvider(
         if (!file.exists()) {
             return@withContext StorageUploadResult(
                 isSuccess = false,
-                errorMessage = "Cannot upload: file does not exist (${file.absolutePath})"
+                errorMessage = "Cannot upload: file does not exist"
             )
         }
+
+        val uploadClient = buildUploadClient(file.length())
 
         try {
             val mediaType = (mimeType.ifBlank { "application/pdf" }).toMediaTypeOrNull()
@@ -147,13 +182,15 @@ class TelegramStorageProvider(
 
             val request = Request.Builder()
                 .url("$baseUrl/sendDocument")
+                .header("Connection", "close")
                 .post(requestBody)
                 .build()
 
             progressCallback?.invoke(file.length(), file.length())
 
-            client.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: ""
+            uploadClient.newCall(request).execute().use { response ->
+                val body = response.body?.byteStream()?.readNBytes(MAX_RESPONSE_BYTES.toInt())
+                    ?.toString(Charsets.UTF_8) ?: ""
                 if (response.isSuccessful && body.contains("\"ok\":true")) {
                     val messageId = extractJsonLong(body, "message_id") ?: System.currentTimeMillis()
                     StorageUploadResult(
@@ -190,11 +227,13 @@ class TelegramStorageProvider(
 
             val request = Request.Builder()
                 .url("$baseUrl/deleteMessage")
+                .header("Connection", "close")
                 .post(requestBody)
                 .build()
 
-            client.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: ""
+            baseClient.newCall(request).execute().use { response ->
+                val body = response.body?.byteStream()?.readNBytes(MAX_RESPONSE_BYTES.toInt())
+                    ?.toString(Charsets.UTF_8) ?: ""
                 response.isSuccessful && body.contains("\"ok\":true")
             }
         } catch (e: Exception) {

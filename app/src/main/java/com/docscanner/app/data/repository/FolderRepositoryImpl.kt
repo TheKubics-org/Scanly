@@ -1,5 +1,6 @@
 package com.docscanner.app.data.repository
 
+import com.docscanner.app.data.local.dao.DocumentDao
 import com.docscanner.app.data.local.dao.FolderDao
 import com.docscanner.app.data.mapper.toDomain
 import com.docscanner.app.data.mapper.toEntity
@@ -11,7 +12,8 @@ import java.util.UUID
 import javax.inject.Inject
 
 class FolderRepositoryImpl @Inject constructor(
-    private val folderDao: FolderDao
+    private val folderDao: FolderDao,
+    private val documentDao: DocumentDao
 ) : FolderRepository {
     
     override fun getAllFolders(): Flow<List<Folder>> {
@@ -36,9 +38,6 @@ class FolderRepositoryImpl @Inject constructor(
     }
 
     override suspend fun renameFolder(id: String, newName: String) {
-        // Unfortunately room doesn't have partial update easily without writing a query. 
-        // We need to fetch it first, but wait, DAO doesn't have a synchronous get by ID.
-        // I will add a method to dao to update name and color.
         folderDao.updateName(id, newName)
     }
 
@@ -47,6 +46,7 @@ class FolderRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteFolder(id: String) {
+        documentDao.clearFolderForDocuments(id)
         folderDao.delete(id)
     }
 }

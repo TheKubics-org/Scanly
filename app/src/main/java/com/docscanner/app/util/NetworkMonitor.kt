@@ -68,11 +68,15 @@ class NetworkMonitor @Inject constructor(
         val activeNetwork = connectivityManager.activeNetwork ?: return NetworkStatus.DISCONNECTED
         val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return NetworkStatus.DISCONNECTED
 
+        val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        if (!hasInternet) return NetworkStatus.DISCONNECTED
+
         return when {
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkStatus.WIFI
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkStatus.CELLULAR
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkStatus.WIFI
-            else -> NetworkStatus.DISCONNECTED
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkStatus.CELLULAR
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> NetworkStatus.WIFI
+            else -> NetworkStatus.WIFI
         }
     }
 }

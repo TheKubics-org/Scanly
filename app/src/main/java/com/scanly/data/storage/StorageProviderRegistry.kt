@@ -13,7 +13,7 @@ class StorageProviderRegistry @Inject constructor(
 ) {
     fun createProvider(config: StorageConfig): StorageProvider {
         return when (config) {
-            is StorageConfig.Telegram -> TelegramStorageProvider(config, okHttpClient)
+            is StorageConfig.Telegram -> TelegramStorageProvider(config)
             is StorageConfig.CloudflareR2 -> S3StorageProvider(config, okHttpClient)
             is StorageConfig.GoogleDrive -> GoogleDriveStorageProvider(config, okHttpClient)
         }

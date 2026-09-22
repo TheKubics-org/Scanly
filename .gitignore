@@ -19,6 +19,7 @@ PROJECT.md
 *.jks
 keystore.properties
 push_to_github.bat
+*.ps1
 
 # Web & GitHub Pages source
 web/node_modules/

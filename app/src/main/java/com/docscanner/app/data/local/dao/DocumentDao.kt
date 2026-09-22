@@ -36,8 +36,14 @@ interface DocumentDao {
     @Query("UPDATE documents SET title = :title WHERE id = :docId")
     suspend fun updateTitle(docId: String, title: String)
 
+    @Query("UPDATE documents SET ocrText = :ocrText, updatedAt = :timestamp WHERE id = :docId")
+    suspend fun updateOcrText(docId: String, ocrText: String, timestamp: Long = System.currentTimeMillis())
+
     @Query("UPDATE documents SET folderId = :folderId WHERE id = :docId")
     suspend fun updateFolder(docId: String, folderId: String?)
+
+    @Query("UPDATE documents SET folderId = NULL WHERE folderId = :folderId")
+    suspend fun clearFolderForDocuments(folderId: String)
 
     @Query("UPDATE documents SET syncStatus = :status, cloudId = :cloudId, fileSize = :fileSize, lastSyncedAt = :lastSyncedAt WHERE id = :docId")
     suspend fun updateSyncStatus(docId: String, status: String, cloudId: String?, fileSize: Long, lastSyncedAt: Long)

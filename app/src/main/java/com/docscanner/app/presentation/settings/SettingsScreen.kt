@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,6 +44,7 @@ fun SettingsScreen(
     val settings by viewModel.settings.collectAsState()
     val activeConfig by viewModel.activeConfig.collectAsState()
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -197,21 +200,72 @@ fun SettingsScreen(
                 )
             }
 
-            // Category: About
+            // Category: About & Ownership
             SettingsCard(
                 categoryTitle = stringResource(R.string.settings_about),
                 categoryIcon = Icons.Outlined.Info
             ) {
                 SettingsInfoItem(
                     title = stringResource(R.string.settings_version),
-                    value = "1.1.0 (Cloud & Offline Storage)"
+                    value = "2.0.0 (TheKubics Edition • Cloud BYOS)"
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                 SettingsInfoItem(
-                    title = "Offline Privacy",
-                    value = "100% On-Device Scanning • Optional End-to-End Cloud Backup"
+                    title = "Ownership & Development",
+                    value = "TheKubics Organization (Official)"
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                SettingsClickableItem(
+                    title = "TheKubics Website",
+                    subtitle = "www.thekubics.space",
+                    trailingIcon = Icons.Default.OpenInNew,
+                    onClick = {
+                        try { uriHandler.openUri("https://www.thekubics.space") } catch (_: Exception) {}
+                    }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                SettingsClickableItem(
+                    title = "Scanly Portal",
+                    subtitle = "scanly.thekubics.space",
+                    trailingIcon = Icons.Default.OpenInNew,
+                    onClick = {
+                        try { uriHandler.openUri("https://scanly.thekubics.space") } catch (_: Exception) {}
+                    }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                SettingsClickableItem(
+                    title = "GitHub",
+                    subtitle = "github.com/TheKubics-org",
+                    trailingIcon = Icons.Default.OpenInNew,
+                    onClick = {
+                        try { uriHandler.openUri("https://github.com/TheKubics-org") } catch (_: Exception) {}
+                    }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                SettingsClickableItem(
+                    title = "Instagram",
+                    subtitle = "@_thekubics_ (instagram.com/_thekubics_)",
+                    trailingIcon = Icons.Default.OpenInNew,
+                    onClick = {
+                        try { uriHandler.openUri("https://instagram.com/_thekubics_") } catch (_: Exception) {}
+                    }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                SettingsInfoItem(
+                    title = "Offline Privacy Guarantee",
+                    value = "100% On-Device Scanning • Zero Analytics • User-Owned Storage"
                 )
             }
 
@@ -305,6 +359,7 @@ private fun SettingsCard(
 private fun SettingsClickableItem(
     title: String,
     subtitle: String? = null,
+    trailingIcon: ImageVector = Icons.Default.ChevronRight,
     onClick: () -> Unit
 ) {
     ListItem(
@@ -316,7 +371,7 @@ private fun SettingsClickableItem(
         },
         trailingContent = {
             Icon(
-                imageVector = Icons.Default.ChevronRight,
+                imageVector = trailingIcon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )

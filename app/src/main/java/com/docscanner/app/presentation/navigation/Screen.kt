@@ -19,4 +19,7 @@ sealed class Screen(val route: String) {
     object StorageProviders : Screen("storage_providers")
     object Settings : Screen("settings")
     object Trash : Screen("trash")
+    object StorageSetupGuide : Screen("storage_setup_guide/{providerType}") {
+        fun createRoute(providerType: String) = "storage_setup_guide/$providerType"
+    }
 }

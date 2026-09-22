@@ -115,6 +115,18 @@ object AwsSigV4Signer {
         return bytesToHex(digest.digest(bytes))
     }
 
+    fun sha256Hex(file: java.io.File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { stream ->
+            val buffer = ByteArray(16384)
+            var bytesRead: Int
+            while (stream.read(buffer).also { bytesRead = it } != -1) {
+                digest.update(buffer, 0, bytesRead)
+            }
+        }
+        return bytesToHex(digest.digest())
+    }
+
     fun sha256Hex(text: String): String {
         return sha256Hex(text.toByteArray(StandardCharsets.UTF_8))
     }
