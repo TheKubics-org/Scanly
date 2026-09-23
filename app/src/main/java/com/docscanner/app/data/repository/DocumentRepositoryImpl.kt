@@ -495,14 +495,16 @@ class DocumentRepositoryImpl @Inject constructor(
         appDatabase.withTransaction {
             pageDao.updateOcrText(pageId, ocrText, 1.0f)
             val currentDoc = documentDao.getDocumentByIdSync(documentId)
-            val combinedOcr = if (currentDoc?.ocrText.isNullOrBlank()) {
-                ocrText
-            } else if (!currentDoc?.ocrText.orEmpty().contains(ocrText)) {
-                "${currentDoc?.ocrText}\n\n$ocrText"
-            } else {
-                currentDoc?.ocrText ?: ocrText
+            if (currentDoc != null) {
+                val combinedOcr = if (currentDoc.ocrText.isNullOrBlank()) {
+                    ocrText
+                } else if (!currentDoc.ocrText.contains(ocrText)) {
+                    "${currentDoc.ocrText}\n\n$ocrText"
+                } else {
+                    currentDoc.ocrText
+                }
+                documentDao.updateOcrText(documentId, combinedOcr)
             }
-            documentDao.updateOcrText(documentId, combinedOcr)
         }
     }
 

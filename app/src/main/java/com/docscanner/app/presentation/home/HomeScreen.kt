@@ -105,7 +105,7 @@ fun HomeScreen(
                     }
                     IconButton(onClick = { showSortMenu = true }) {
                         Icon(
-                            Icons.Outlined.Sort,
+                            androidx.compose.material.icons.automirrored.outlined.Sort,
                             contentDescription = stringResource(R.string.cd_sort)
                         )
                     }
@@ -141,7 +141,7 @@ fun HomeScreen(
                     }
                     IconButton(onClick = viewModel::toggleViewType) {
                         Icon(
-                            if (viewType == ViewType.GRID) Icons.Outlined.ViewList else Icons.Outlined.GridView,
+                            if (viewType == ViewType.GRID) androidx.compose.material.icons.automirrored.outlined.ViewList else Icons.Outlined.GridView,
                             contentDescription = stringResource(R.string.cd_view_toggle)
                         )
                     }
