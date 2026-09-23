@@ -272,7 +272,7 @@ fun SettingsScreen(
             ) {
                 SettingsInfoItem(
                     title = stringResource(R.string.settings_version),
-                    value = "2.1.0"
+                    value = "2.1.1"
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
