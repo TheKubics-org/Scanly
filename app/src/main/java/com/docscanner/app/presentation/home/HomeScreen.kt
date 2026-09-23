@@ -13,6 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.outlined.Sort
+import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -105,7 +107,7 @@ fun HomeScreen(
                     }
                     IconButton(onClick = { showSortMenu = true }) {
                         Icon(
-                            androidx.compose.material.icons.Icons.AutoMirrored.Outlined.Sort,
+                            Icons.AutoMirrored.Outlined.Sort,
                             contentDescription = stringResource(R.string.cd_sort)
                         )
                     }
@@ -141,7 +143,7 @@ fun HomeScreen(
                     }
                     IconButton(onClick = viewModel::toggleViewType) {
                         Icon(
-                            if (viewType == ViewType.GRID) androidx.compose.material.icons.Icons.AutoMirrored.Outlined.ViewList else Icons.Outlined.GridView,
+                            if (viewType == ViewType.GRID) Icons.AutoMirrored.Outlined.ViewList else Icons.Outlined.GridView,
                             contentDescription = stringResource(R.string.cd_view_toggle)
                         )
                     }
