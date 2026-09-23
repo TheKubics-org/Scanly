@@ -23,16 +23,21 @@ import com.docscanner.app.R
  * )
  * ```
  */
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+
 @Composable
 fun TheKubicsTopBarLogo(
     modifier: Modifier = Modifier
 ) {
     Image(
-        painter = painterResource(id = R.drawable.ic_thekubics_logo),
-        contentDescription = "TheKubics",
+        painter = painterResource(id = R.drawable.img_thekubics_logo),
+        contentDescription = "TheKubics Logo",
+        contentScale = ContentScale.Crop,
         modifier = modifier
-            .height(24.dp)
-            .padding(end = 12.dp),
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
+            .padding(end = 12.dp)
+            .height(28.dp)
+            .clip(RoundedCornerShape(6.dp))
     )
 }
