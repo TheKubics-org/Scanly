@@ -163,6 +163,9 @@ class DocumentRepositoryImpl @Inject constructor(
             pageDao.insertAll(pageEntities)
         }
 
+        // Recalculate file size
+        recalculateDocumentSize(docId)
+
         // Trigger on-the-spot cloud sync immediately after document is saved
         cloudSyncManager.triggerImmediateSync()
 
@@ -481,6 +484,8 @@ class DocumentRepositoryImpl @Inject constructor(
                 documentDao.upsert(updatedDoc)
             }
         }
+        
+        recalculateDocumentSize(documentId)
 
         // On-the-spot sync: upload new pages to cloud immediately
         cloudSyncManager.triggerImmediateSync()
@@ -499,6 +504,14 @@ class DocumentRepositoryImpl @Inject constructor(
             }
             documentDao.updateOcrText(documentId, combinedOcr)
         }
+    }
+
+    private suspend fun recalculateDocumentSize(documentId: String) = withContext(Dispatchers.IO) {
+        val pages = pageDao.getPagesForDocumentSync(documentId)
+        val totalSize = pages.sumOf { page ->
+            runCatching { File(page.processedImagePath).length() }.getOrDefault(0L)
+        }
+        documentDao.updateFileSize(documentId, totalSize)
     }
 }
 

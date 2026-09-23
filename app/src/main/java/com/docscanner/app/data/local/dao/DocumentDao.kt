@@ -93,4 +93,7 @@ interface DocumentDao {
     /** Count of non-trashed documents */
     @Query("SELECT COUNT(*) FROM documents WHERE isTrashed = 0")
     fun getActiveDocumentCount(): Flow<Int>
+
+    @Query("UPDATE documents SET fileSize = :size WHERE id = :id")
+    suspend fun updateFileSize(id: String, size: Long)
 }
