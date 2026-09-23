@@ -31,6 +31,7 @@ import coil3.compose.AsyncImage
 import com.docscanner.app.domain.model.Page
 import com.docscanner.app.presentation.viewer.components.OcrResultSheet
 import com.docscanner.app.presentation.viewer.components.PdfExportDialog
+import com.docscanner.app.presentation.common.TheKubicsTopBarLogo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,6 +151,7 @@ fun ViewerScreen(
                             }
                         )
                     }
+                    TheKubicsTopBarLogo()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface

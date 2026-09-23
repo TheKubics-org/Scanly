@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.docscanner.app.R
+import com.docscanner.app.presentation.common.TheKubicsTopBarLogo
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +57,7 @@ fun StorageDashboardScreen(
                         )
                     }
                 },
+                actions = { TheKubicsTopBarLogo() },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
@@ -69,10 +71,10 @@ fun StorageDashboardScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Main Storage Card
+            // === LOCAL DEVICE STORAGE CARD ===
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -93,7 +95,7 @@ fun StorageDashboardScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Cloud Storage",
+                                text = "Local Storage (Scanly App)",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -167,7 +169,7 @@ fun StorageDashboardScreen(
                 StorageCategoryCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Outlined.PictureAsPdf,
-                    categoryName = stringResource(R.string.dashboard_category_pdfs),
+                    categoryName = "Vault Docs",
                     formattedSize = formattedPdfs,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -183,7 +185,7 @@ fun StorageDashboardScreen(
                 StorageCategoryCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Outlined.Description,
-                    categoryName = stringResource(R.string.dashboard_category_docs),
+                    categoryName = "Plain Docs",
                     formattedSize = formattedDocs,
                     color = MaterialTheme.colorScheme.primary
                 )

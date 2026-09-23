@@ -13,6 +13,7 @@ import com.docscanner.app.domain.model.Document
 import com.docscanner.app.domain.model.FilterType
 import com.docscanner.app.domain.model.Page
 import com.docscanner.app.domain.repository.DocumentRepository
+import com.docscanner.app.service.sync.CloudSyncManager
 import com.docscanner.app.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +30,8 @@ class DocumentRepositoryImpl @Inject constructor(
     private val appDatabase: AppDatabase,
     private val documentDao: DocumentDao,
     private val pageDao: PageDao,
-    private val context: Context
+    private val context: Context,
+    private val cloudSyncManager: CloudSyncManager
 ) : DocumentRepository {
 
     private fun persistImageFile(docId: String, pageIndex: Int, sourceUriOrPath: String): String {
@@ -160,6 +162,9 @@ class DocumentRepositoryImpl @Inject constructor(
             }
             pageDao.insertAll(pageEntities)
         }
+
+        // Trigger on-the-spot cloud sync immediately after document is saved
+        cloudSyncManager.triggerImmediateSync()
 
         doc
     }
@@ -476,6 +481,9 @@ class DocumentRepositoryImpl @Inject constructor(
                 documentDao.upsert(updatedDoc)
             }
         }
+
+        // On-the-spot sync: upload new pages to cloud immediately
+        cloudSyncManager.triggerImmediateSync()
     }
 
     override suspend fun updateOcrText(documentId: String, pageId: String, ocrText: String) = withContext(Dispatchers.IO) {

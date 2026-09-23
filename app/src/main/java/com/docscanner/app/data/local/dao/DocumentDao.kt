@@ -77,4 +77,20 @@ interface DocumentDao {
 
     @Query("DELETE FROM documents WHERE isTrashed = 1")
     suspend fun deleteAllTrashed()
+
+    /** Sum of all non-trashed document file sizes stored on device */
+    @Query("SELECT COALESCE(SUM(fileSize), 0) FROM documents WHERE isTrashed = 0")
+    fun getTotalFileSizeBytes(): Flow<Long>
+
+    /** Sum of non-trashed encrypted documents (vault docs) */
+    @Query("SELECT COALESCE(SUM(fileSize), 0) FROM documents WHERE isTrashed = 0 AND isEncrypted = 1")
+    fun getEncryptedFileSizeBytes(): Flow<Long>
+
+    /** Sum of non-trashed non-encrypted documents (plain docs) */
+    @Query("SELECT COALESCE(SUM(fileSize), 0) FROM documents WHERE isTrashed = 0 AND isEncrypted = 0")
+    fun getPlainFileSizeBytes(): Flow<Long>
+
+    /** Count of non-trashed documents */
+    @Query("SELECT COUNT(*) FROM documents WHERE isTrashed = 0")
+    fun getActiveDocumentCount(): Flow<Int>
 }

@@ -34,6 +34,7 @@ import com.docscanner.app.domain.model.SyncStatus
 import com.scanly.data.storage.StorageProviderType
 import com.docscanner.app.presentation.common.ConfirmationDialog
 import com.docscanner.app.presentation.common.EmptyState
+import com.docscanner.app.presentation.common.TheKubicsTopBarLogo
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -103,6 +104,7 @@ fun CloudScreen(
                             tint = if (activeConfig != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                         )
                     }
+                    TheKubicsTopBarLogo()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -116,7 +118,7 @@ fun CloudScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // Storage Quota Quick Card

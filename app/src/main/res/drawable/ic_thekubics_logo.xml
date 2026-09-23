@@ -1,0 +1,48 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="32dp"
+    android:viewportWidth="120"
+    android:viewportHeight="32">
+
+    <!-- Hexagon "K" icon mark -->
+    <path
+        android:fillColor="#6750A4"
+        android:pathData="M16,3 L24.66,8 L24.66,18 L16,23 L7.34,18 L7.34,8 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,10 L12,22 M12,16 L18,10 M12,16 L18,22"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillAlpha="0" />
+
+    <!-- "TheKubics" text rendered as path blocks -->
+    <!-- T -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M30,10 L36,10 L36,11.5 L33.75,11.5 L33.75,20 L32.25,20 L32.25,11.5 L30,11.5 Z"/>
+    <!-- h -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M37,10 L38.5,10 L38.5,13.8 Q39.2,13 40.2,13 Q41.8,13 41.8,14.8 L41.8,20 L40.3,20 L40.3,15.1 Q40.3,14.3 39.5,14.3 Q38.8,14.3 38.5,15 L38.5,20 L37,20 Z"/>
+    <!-- e -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M43,16.5 Q43,13 45.5,13 Q48,13 48,16 L48,16.8 L44.5,16.8 Q44.6,18.2 45.8,18.2 Q46.7,18.2 47.2,17.5 L47.9,18.4 Q47.1,19.3 45.8,19.3 Q43,19.3 43,16.5 Z M44.5,15.8 L46.5,15.8 Q46.4,14.2 45.5,14.2 Q44.6,14.2 44.5,15.8 Z"/>
+    <!-- K -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M50,10 L51.5,10 L51.5,16 L54.5,13 L56.3,13 L53.2,16.2 L56.5,20 L54.7,20 L51.5,16.5 L51.5,20 L50,20 Z"/>
+    <!-- u -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M57.5,13 L59,13 L59,18 Q59,18.2 59.8,18.2 Q60.4,18.2 60.8,17.8 L60.8,13 L62.3,13 L62.3,20 L61,20 L60.9,19.2 Q60.1,20 59,20 Q57.5,20 57.5,18.5 Z"/>
+    <!-- b -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M63.5,10 L65,10 L65,13.7 Q65.7,13 66.7,13 Q68.8,13 68.8,16.5 Q68.8,19.3 66.5,19.3 Q65.5,19.3 64.9,18.6 L64.8,20 L63.5,20 Z M65,17.8 Q65.4,18.2 66.1,18.2 Q67.3,18.2 67.3,16.5 Q67.3,14.3 66.1,14.3 Q65.5,14.3 65,14.8 Z"/>
+    <!-- i -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M70,11 Q70,10.4 70.6,10.4 Q71.2,10.4 71.2,11 Q71.2,11.6 70.6,11.6 Q70,11.6 70,11 Z M70,13 L71.2,13 L71.2,20 L70,20 Z"/>
+    <!-- c -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M72.5,16.5 Q72.5,13 75,13 Q76.3,13 76.9,13.9 L76,14.9 Q75.7,14.2 75,14.2 Q74,14.2 74,16.5 Q74,18.3 75.1,18.3 Q75.8,18.3 76.1,17.6 L77,18.5 Q76.2,19.3 75,19.3 Q72.5,19.3 72.5,16.5 Z"/>
+    <!-- s -->
+    <path android:fillColor="#1C1B1F"
+        android:pathData="M77.5,18.5 L78.4,17.6 Q78.9,18.2 79.7,18.2 Q80.4,18.2 80.4,17.7 Q80.4,17.3 79.4,17 Q78,16.5 78,15.1 Q78,13 80,13 Q81.1,13 81.8,13.7 L81,14.6 Q80.6,14.2 80,14.2 Q79.3,14.2 79.3,14.7 Q79.3,15 80.4,15.4 Q81.8,15.9 81.8,17.4 Q81.8,19.3 79.7,19.3 Q78.4,19.3 77.5,18.5 Z"/>
+</vector>

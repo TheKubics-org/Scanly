@@ -25,6 +25,7 @@ import com.docscanner.app.R
 import com.docscanner.app.domain.model.Folder
 import com.docscanner.app.presentation.common.ConfirmationDialog
 import com.docscanner.app.presentation.common.EmptyState
+import com.docscanner.app.presentation.common.TheKubicsTopBarLogo
 import com.docscanner.app.presentation.theme.FolderColorPresets
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +52,7 @@ fun FoldersScreen(
                             contentDescription = stringResource(R.string.folders_create)
                         )
                     }
+                    TheKubicsTopBarLogo()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,

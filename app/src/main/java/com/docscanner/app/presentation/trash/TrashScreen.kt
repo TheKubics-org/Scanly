@@ -27,6 +27,7 @@ import com.docscanner.app.R
 import com.docscanner.app.domain.model.Document
 import com.docscanner.app.presentation.common.ConfirmationDialog
 import com.docscanner.app.presentation.common.EmptyState
+import com.docscanner.app.presentation.common.TheKubicsTopBarLogo
 import com.docscanner.app.util.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,6 +80,7 @@ fun TrashScreen(
                             )
                         }
                     }
+                    TheKubicsTopBarLogo()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,

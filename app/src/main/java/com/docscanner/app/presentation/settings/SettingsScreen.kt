@@ -30,6 +30,7 @@ import com.docscanner.app.R
 import com.docscanner.app.domain.model.SaveAction
 import com.docscanner.app.domain.model.UserSettings.ThemeMode
 import com.docscanner.app.presentation.common.ConfirmationDialog
+import com.docscanner.app.presentation.common.TheKubicsTopBarLogo
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +57,7 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title)) },
+                actions = { TheKubicsTopBarLogo() },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
@@ -69,7 +71,8 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Category: Cloud Storage & Sync
@@ -205,9 +208,34 @@ fun SettingsScreen(
                 categoryTitle = stringResource(R.string.settings_about),
                 categoryIcon = Icons.Outlined.Info
             ) {
+                // TheKubics brand header inside About card
+                ListItem(
+                    headlineContent = {
+                        Text(
+                            "TheKubics",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    supportingContent = {
+                        Text(
+                            "Official Developer Organization",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    leadingContent = {
+                        TheKubicsTopBarLogo()
+                    },
+                    colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
                 SettingsInfoItem(
                     title = stringResource(R.string.settings_version),
-                    value = "2.0.0 (TheKubics Edition • Cloud BYOS)"
+                    value = "2.1.0 (TheKubics Edition • Cloud BYOS)"
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
