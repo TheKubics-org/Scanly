@@ -203,12 +203,12 @@ fun SettingsScreen(
                 )
             }
 
-            // Category: About & Ownership
+            // Category: Author
             SettingsCard(
-                categoryTitle = stringResource(R.string.settings_about),
-                categoryIcon = Icons.Outlined.Info
+                categoryTitle = "Author",
+                categoryIcon = Icons.Outlined.Person
             ) {
-                // TheKubics brand header inside About card
+                // TheKubics brand header inside Author card
                 ListItem(
                     headlineContent = {
                         Text(
@@ -233,20 +233,6 @@ fun SettingsScreen(
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-                SettingsInfoItem(
-                    title = stringResource(R.string.settings_version),
-                    value = "2.1.0 (TheKubics Edition • Cloud BYOS)"
-                )
-
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-                SettingsInfoItem(
-                    title = "Ownership & Development",
-                    value = "TheKubics Organization (Official)"
-                )
-
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
                 SettingsClickableItem(
                     title = "TheKubics Website",
                     subtitle = "www.thekubics.space",
@@ -259,14 +245,14 @@ fun SettingsScreen(
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                 SettingsClickableItem(
-                    title = "Scanly Portal",
-                    subtitle = "scanly.thekubics.space",
+                    title = "Instagram",
+                    subtitle = "@_thekubics_",
                     trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
                     onClick = {
-                        try { uriHandler.openUri("https://scanly.thekubics.space") } catch (_: Exception) {}
+                        try { uriHandler.openUri("https://instagram.com/_thekubics_") } catch (_: Exception) {}
                     }
                 )
-
+                
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                 SettingsClickableItem(
@@ -277,23 +263,23 @@ fun SettingsScreen(
                         try { uriHandler.openUri("https://github.com/TheKubics-org") } catch (_: Exception) {}
                     }
                 )
+            }
 
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-                SettingsClickableItem(
-                    title = "Instagram",
-                    subtitle = "@_thekubics_ (instagram.com/_thekubics_)",
-                    trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
-                    onClick = {
-                        try { uriHandler.openUri("https://instagram.com/_thekubics_") } catch (_: Exception) {}
-                    }
+            // Category: About
+            SettingsCard(
+                categoryTitle = stringResource(R.string.settings_about),
+                categoryIcon = Icons.Outlined.Info
+            ) {
+                SettingsInfoItem(
+                    title = stringResource(R.string.settings_version),
+                    value = "2.1.0"
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                 SettingsInfoItem(
                     title = "Offline Privacy Guarantee",
-                    value = "100% On-Device Scanning • Zero Analytics • User-Owned Storage"
+                    value = "100% On-Device Scanning • Zero Analytics"
                 )
             }
 

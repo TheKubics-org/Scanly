@@ -27,6 +27,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 
+import androidx.compose.foundation.layout.size
+
 @Composable
 fun TheKubicsTopBarLogo(
     modifier: Modifier = Modifier
@@ -37,7 +39,7 @@ fun TheKubicsTopBarLogo(
         contentScale = ContentScale.Crop,
         modifier = modifier
             .padding(end = 12.dp)
-            .height(28.dp)
-            .clip(RoundedCornerShape(6.dp))
+            .size(32.dp)
+            .clip(RoundedCornerShape(8.dp))
     )
 }
