@@ -45,8 +45,8 @@
 }
 
 # Room & Domain Entities
--keep class com.docscanner.app.data.local.entity.** { *; }
--keep class com.docscanner.app.domain.model.** { *; }
--keep class com.scanly.data.storage.** { *; }
+-keep class com.thekubics.scanly.data.local.entity.** { *; }
+-keep class com.thekubics.scanly.domain.model.** { *; }
+-keep class com.thekubics.scanly.data.storage.** { *; }
 
 

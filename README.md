@@ -9,8 +9,8 @@
 
 [![TheKubics Project](https://img.shields.io/badge/Parent%20Studio-TheKubics-ECA8D6?style=for-the-badge&logo=appveyor&logoColor=black)](https://thekubics.space/)
 [![Website](https://img.shields.io/badge/Official%20Site-scanly.thekubics.space-38BDF8?style=for-the-badge&logo=googlechrome&logoColor=white)](https://scanly.thekubics.space/)
-[![Platform](https://img.shields.io/badge/Platform-Android%2014%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
-[![Kotlin](https://img.shields.io/badge/Language-Kotlin%202.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
+[![Platform](https://img.shields.io/badge/Platform-Android%207%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
+[![Kotlin](https://img.shields.io/badge/Language-Kotlin%202.4-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![UI](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 
 ---
@@ -54,7 +54,7 @@
 Scanly follows strict **Clean Architecture** principles structured into three decoupled layers:
 
 ```
-com.docscanner.app
+com.thekubics.scanly
 ├── data
 │   ├── local
 │   │   ├── dao          # Room DAOs (Document, Page, Folder, Cloud, SyncQueue)
@@ -62,14 +62,15 @@ com.docscanner.app
 │   │   └── entity       # Relational SQLite table entities
 │   ├── mapper           # Entity <-> Domain bidirectional mappers
 │   ├── repository       # Concrete repository implementations
-│   └── service          # CloudStorageServiceImpl & AuthServiceImpl
+│   ├── service          # CloudStorageServiceImpl
+│   ├── storage          # BYOS providers: Telegram, Cloudflare R2, Google Drive
+│   └── vault            # EncryptedSharedPreferences credential vault
 ├── di                   # Dagger Hilt dependency injection modules
 ├── domain
 │   ├── model            # Immutable pure Kotlin domain models
 │   ├── repository       # Repository abstractions / contracts
-│   └── service          # Service interfaces (Storage, Auth, Filters)
+│   └── service          # Service interfaces (Cloud Storage, Filters, Sync)
 ├── presentation
-│   ├── auth             # Sign In, Sign Up, Profile UI
 │   ├── cloud            # Cloud Library & Storage Telemetry Dashboard
 │   ├── common           # Reusable Compose components (Pills, Dialogs)
 │   ├── editor           # Document adjustment, filters, & page composer
@@ -77,11 +78,14 @@ com.docscanner.app
 │   ├── home             # Document grid, recent scans, search
 │   ├── navigation       # Type-safe Jetpack Compose navigation graphs
 │   ├── scanner          # CameraX viewfinder with real-time ML Kit overlays
+│   ├── search           # Full-text OCR & document search
 │   ├── settings         # Theme selection, save defaults, cache cleaner
-│   └── theme            # TheKubics dark-first design tokens & typography
+│   ├── theme            # TheKubics dark-first design tokens & typography
+│   ├── trash            # Trash management & restore
+│   └── viewer           # Page viewer, OCR results, PDF export
 ├── service
 │   ├── filter           # ImageFilterService (ColorMatrix & Bitmap transforms)
-│   ├── pdf              # PdfExportService (A4 / Letter generator)
+│   ├── pdf              # PdfGeneratorService (A4 / Letter generator)
 │   └── sync             # CloudSyncWorker & periodic WorkManager scheduler
 └── util                 # NetworkMonitor, FileUtils, BitmapExtensions
 ```
@@ -92,7 +96,7 @@ com.docscanner.app
 
 Scanly is built with tools that ship:
 
-* **Language:** Kotlin 2.0.21
+* **Language:** Kotlin 2.4.10
 * **UI Framework:** Jetpack Compose with Material Design 3
 * **Computer Vision:** Google ML Kit Document Detection
 * **Dependency Injection:** Dagger Hilt 2.51.1 (`hilt-android`, `hilt-work`)
@@ -109,7 +113,7 @@ Scanly is built with tools that ship:
 ### Prerequisites
 * Android Studio Ladybug or newer
 * JDK 17 or JDK 21 (configured as `JAVA_HOME`)
-* Android SDK 35 (compileSdk: 35, minSdk: 26)
+* Android SDK 37 (compileSdk: 37, minSdk: 24, targetSdk: 35)
 
 ### Clone & Build
 ```bash

@@ -9,15 +9,15 @@ plugins {
 }
 
 android {
-    namespace = "com.docscanner.app"
+    namespace = "com.thekubics.scanly"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.docscanner.app"
+        applicationId = "com.thekubics.scanly"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 7
-        versionName = "2.1.1"
+        targetSdk = 35
+        versionCode = 8
+        versionName = "2.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -75,6 +75,9 @@ android {
     lint {
         abortOnError = false
         checkReleaseBuilds = false
+    }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 }
 
@@ -136,6 +139,7 @@ dependencies {
     testImplementation(libs.mockwebserver)
     testImplementation(libs.coroutines.test)
     testImplementation(libs.room.testing)
+    testImplementation(libs.json)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.tooling)

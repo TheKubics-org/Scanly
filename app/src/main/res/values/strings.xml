@@ -100,8 +100,6 @@
     <string name="settings_security">Security</string>
     <string name="settings_app_lock">App lock</string>
     <string name="settings_app_lock_subtitle">Require biometric or PIN to open the app</string>
-    <string name="settings_encrypt">Encrypt new documents</string>
-    <string name="settings_encrypt_subtitle">Client-side encryption for sensitive documents</string>
     <string name="settings_data">Data</string>
     <string name="settings_clear_cache">Clear cache</string>
     <string name="settings_trash">Trash</string>
@@ -129,7 +127,7 @@
     <string name="onboarding_enhance_title">Enhance &amp; Export</string>
     <string name="onboarding_enhance_subtitle">Apply professional filters, adjust brightness and contrast, and export as PDF or image</string>
     <string name="onboarding_offline_title">100% Offline &amp; Private</string>
-    <string name="onboarding_offline_subtitle">Your documents stay securely on your device. Complete privacy with local encryption.</string>
+    <string name="onboarding_offline_subtitle">Your documents stay securely on your device. No account needed.</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_get_started">Get Started</string>
     <string name="onboarding_skip">Skip</string>
@@ -168,6 +166,9 @@
     <string name="nav_cloud">Cloud</string>
     <string name="cloud_title">Cloud Storage</string>
     <string name="cloud_storage_used">%1$s of %2$s used</string>
+    <string name="cloud_storage_backed_up">%1$s backed up</string>
+    <string name="cloud_storage_limit_provider">Storage limit is managed by your provider</string>
+    <string name="cloud_utilized">%1$d%% utilized</string>
     <string name="cloud_dashboard">Dashboard</string>
     <string name="cloud_empty_title">No Cloud Documents</string>
     <string name="cloud_empty_subtitle">Documents backed up to the cloud will appear here</string>
@@ -176,6 +177,7 @@
     <string name="cloud_sync_now">Sync Now</string>
     <string name="cloud_syncing">Syncing documents…</string>
     <string name="cloud_download">Download to Device</string>
+    <string name="cloud_download_unavailable">Download unavailable for this backup</string>
     <string name="cloud_delete">Delete from Cloud</string>
     <string name="cloud_delete_confirm">Delete \"%1$s\" from cloud storage? Local copies will remain on your device.</string>
     <string name="cloud_status_synced">Synced</string>

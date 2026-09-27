@@ -27,3 +27,6 @@ web/.vite/
 web/dist/
 
 .kotlin/
+
+# Project documentation (session-generated knowledge base)
+Project/
