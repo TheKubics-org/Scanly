@@ -1,0 +1,15 @@
+/* TEAM */
+  Product: TheKubics
+  Site: https://thekubics.space/
+  Contact: thekubics.dev@gmail.com
+
+/* SITE */
+  Standards: HTML5, CSS3, vanilla ES modules
+  Build: Vite
+  Hosting: GitHub Pages
+  Source: https://github.com/TheKubics-org/Scanly
+  License: open source
+
+/* NOTES */
+  This is a single-page static site. No trackers, no cookies, no third-party
+  analytics. Theme preference is kept in localStorage only.

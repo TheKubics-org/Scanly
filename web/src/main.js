@@ -9,6 +9,8 @@ window.addEventListener('load', () => {
   if (loader) {
     setTimeout(() => {
       loader.classList.add('hide');
+      // Trigger hero animations after loader
+      document.body.classList.add('loaded');
     }, 200);
   }
 });
@@ -57,19 +59,30 @@ function initReveals() {
 
   if (prefersReducedMotion) {
     document.querySelectorAll('.reveal').forEach(el => el.classList.add('revealed'));
+    document.querySelectorAll('.stagger').forEach(el => el.classList.add('revealed'));
     return;
   }
 
-  const observer = new IntersectionObserver((entries) => {
+  const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('revealed');
-        observer.unobserve(entry.target);
+        revealObserver.unobserve(entry.target);
       }
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  const staggerObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        staggerObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  document.querySelectorAll('.stagger').forEach(el => staggerObserver.observe(el));
 }
 
 // ─── COUNTER ANIMATION ──────────────────────────────────
@@ -100,12 +113,44 @@ function animateCounters() {
   counters.forEach(c => observer.observe(c));
 }
 
+
+
+// ─── LAZY LOAD IMAGES ────────────────────────────────────
+function initLazyImages() {
+  if ('loading' in HTMLImageElement.prototype) {
+    document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+      img.addEventListener('load', () => img.classList.add('loaded'));
+      if (img.complete) img.classList.add('loaded');
+    });
+  } else {
+    // Fallback for older browsers
+    const lazyObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = img.dataset.src || img.src;
+          img.classList.add('loaded');
+          lazyObserver.unobserve(img);
+        }
+      });
+    }, { rootMargin: '100px' });
+
+    document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+      if (img.dataset.src) {
+        img.src = img.dataset.src;
+      }
+      lazyObserver.observe(img);
+    });
+  }
+}
+
 // ─── SCROLL PROGRESS & NAV ───────────────────────────────
 function initNav() {
   const nav = document.getElementById('nav');
-  const toggle = document.querySelector('.mobile-toggle');
+  const toggle = document.querySelector('.menu-toggle');
   const links = document.getElementById('nav-links');
   const progressFill = document.querySelector('.scroll-progress-fill');
+  const percentOut = document.querySelector('.scroll-percent');
 
   window.addEventListener('scroll', () => {
     const scrollY = window.scrollY;
@@ -120,10 +165,11 @@ function initNav() {
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       const pct = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
       progressFill.style.width = pct + '%';
+      if (percentOut) percentOut.firstChild.textContent = Math.round(pct);
     }
   }, { passive: true });
 
-  // Mobile navigation toggle
+  // Menu toggle (hamburger)
   toggle?.addEventListener('click', () => {
     const isOpen = toggle.getAttribute('aria-expanded') === 'true';
     toggle.setAttribute('aria-expanded', !isOpen);
@@ -131,7 +177,7 @@ function initNav() {
     document.body.style.overflow = !isOpen ? 'hidden' : '';
   });
 
-  // Close mobile navigation on link click
+  // Close menu on link click
   links?.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', () => {
       toggle?.setAttribute('aria-expanded', 'false');
@@ -156,6 +202,15 @@ function initNav() {
   }, { threshold: 0.25, rootMargin: '-60px 0px -40% 0px' });
 
   sections.forEach(s => sectionObserver.observe(s));
+  
+  // Close menu on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && links?.classList.contains('open')) {
+      toggle?.setAttribute('aria-expanded', 'false');
+      links.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
 }
 
 // ─── INTERACTIVE FILTER & ADJUSTMENT ENGINE ──────────────
@@ -193,6 +248,9 @@ function initEnhanceDemo() {
       case 'contrast':
         filterStr += ' contrast(190%)';
         break;
+      case 'color':
+        filterStr += ' saturate(150%) contrast(110%)';
+        break;
       case 'original':
       default:
         break;
@@ -207,6 +265,14 @@ function initEnhanceDemo() {
       pill.classList.add('active');
       currentMode = pill.dataset.mode;
       applyFilters();
+    });
+    
+    // Keyboard support
+    pill.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        pill.click();
+      }
     });
   });
 
@@ -250,6 +316,19 @@ function initComposerDemo() {
         footerIndicator.textContent = pageTitles[index];
       }
     });
+
+    // Keyboard support
+    page.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        page.click();
+      }
+    });
+    
+    // Make focusable
+    page.setAttribute('tabindex', '0');
+    page.setAttribute('role', 'button');
+    page.setAttribute('aria-label', `Page ${index + 1}`);
   });
 }
 
@@ -271,13 +350,88 @@ function initSmoothScroll() {
   });
 }
 
+// ─── PERFORMANCE: DEFER NON-CRITICAL ─────────────────────
+function initDeferred() {
+  // Preload critical images
+  const criticalImages = [
+    './images/scanly-logo.jpg',
+    './images/TheKubics-cube.png'
+  ];
+  
+  criticalImages.forEach(src => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = src;
+    document.head.appendChild(link);
+  });
+  
+  // Initialize lazy loading after a delay
+  setTimeout(initLazyImages, 1000);
+}
+
+// ─── LIVE PHONE STATUS BAR ───────────────────────────────
+function initPhoneStatus() {
+  const timeEl = document.getElementById('ui-time');
+  const battEl = document.getElementById('ui-batt-fill');
+  const pctEl = document.getElementById('ui-batt-pct');
+  const sigEl = document.getElementById('ui-signal');
+  const wifiEl = document.getElementById('ui-wifi');
+  if (!timeEl) return;
+
+  const tick = () => {
+    const now = new Date();
+    timeEl.textContent = now.toLocaleTimeString([], {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    const online = navigator.onLine !== false;
+    if (wifiEl) wifiEl.dataset.state = online ? 'on' : 'off';
+    if (sigEl) sigEl.dataset.state = online ? 'full' : 'none';
+  };
+  tick();
+  setInterval(tick, 1000);
+
+  window.addEventListener('online', tick);
+  window.addEventListener('offline', tick);
+
+  const paintBattery = (level, charging) => {
+    const pct = Math.round(level * 100);
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (battEl) {
+      battEl.style.width = Math.max(4, pct) + '%';
+      battEl.dataset.level = pct <= 15 ? 'low' : pct <= 40 ? 'mid' : 'high';
+      battEl.dataset.charging = charging ? 'true' : 'false';
+    }
+  };
+
+  if ('getBattery' in navigator) {
+    navigator.getBattery().then(b => {
+      const sync = () => paintBattery(b.level, b.charging);
+      sync();
+      b.addEventListener('levelchange', sync);
+      b.addEventListener('chargingchange', sync);
+    }).catch(() => paintBattery(0.86, false));
+  } else {
+    paintBattery(0.86, false);
+  }
+}
+
 // ─── INITIALIZATION ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initReveals();
   animateCounters();
   initNav();
+  initPhoneStatus();
   initEnhanceDemo();
   initComposerDemo();
   initSmoothScroll();
+  initDeferred();
+});
+
+// ─── ERROR HANDLING ──────────────────────────────────────
+window.addEventListener('error', (e) => {
+  console.warn('[Scanly Web] Error caught:', e.message);
 });

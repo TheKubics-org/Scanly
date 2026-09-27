@@ -30,3 +30,8 @@ web/dist/
 
 # Project documentation (session-generated knowledge base)
 Project/
+
+# Local security-scanner working files (not part of the project)
+findings.db
+scope.yaml
+results/

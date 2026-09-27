@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Page Not Found | Scanly</title>
+  <meta name="description" content="The page you were looking for does not exist.">
+  <meta name="robots" content="noindex, follow">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+  <link rel="canonical" href="https://scanly.thekubics.space/404.html">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#000;--ink:#fff;--ink-2:rgba(255,255,255,.65);
+      --muted:rgba(255,255,255,.40);--line:rgba(255,255,255,.10);
+      --accent:#38BDF8;--font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+      --font-display:'Fraunces',Georgia,serif;
+    }
+    body{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:var(--bg);color:var(--ink);
+      font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      position:relative;overflow:hidden;padding:2rem;
+    }
+    .grid{
+      position:fixed;inset:0;pointer-events:none;
+      background-image:
+        linear-gradient(var(--line) 1px,transparent 1px),
+        linear-gradient(90deg,var(--line) 1px,transparent 1px);
+      background-size:48px 48px;opacity:.35;
+    }
+    .wrap{position:relative;text-align:center;max-width:640px}
+    .code{
+      font-family:var(--font-display);font-weight:600;
+      font-size:clamp(6rem,22vw,13rem);line-height:.85;letter-spacing:-.04em;
+      color:transparent;-webkit-text-stroke:2px var(--ink);
+    }
+    .code i{font-style:italic;color:var(--accent);-webkit-text-stroke:0}
+    h1{font-size:clamp(1.35rem,3vw,2rem);margin:.75rem 0 1rem;font-weight:600}
+    p{color:var(--ink-2);line-height:1.7;margin-bottom:2rem;font-size:1rem}
+    .links{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+    a.pill{
+      display:inline-flex;align-items:center;gap:.5rem;
+      padding:.85rem 1.6rem;border-radius:999px;text-decoration:none;
+      font-family:var(--font-mono);font-size:.82rem;letter-spacing:.04em;
+      border:1px solid var(--line);color:var(--ink-2);transition:.2s;
+    }
+    a.pill:hover{border-color:var(--accent);color:var(--accent)}
+    a.pill.primary{background:#fff;color:#000;border-color:#fff}
+    a.pill.primary:hover{background:var(--accent);border-color:var(--accent);color:#000}
+    .meta{
+      margin-top:2.5rem;font-family:var(--font-mono);font-size:.7rem;
+      letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="grid" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="code">4<i>0</i>4</div>
+    <h1>This page got lost between the scanner and the stack.</h1>
+    <p>The URL you followed does not exist. It may have moved, or the link may have been mistyped.</p>
+    <div class="links">
+      <a class="pill primary" href="/">Back to Scanly</a>
+      <a class="pill" href="/privacy.html">Privacy Policy</a>
+      <a class="pill" href="https://github.com/TheKubics-org/Scanly">GitHub</a>
+    </div>
+    <p class="meta">Scanly &middot; By TheKubics</p>
+  </div>
+</body>
+</html>
