@@ -1,0 +1,95 @@
+# Scanly — full content for language models
+
+> Free, open-source document scanner for Android by TheKubics. Offline-first, no account, bring your own cloud storage. This file contains the substantive content of https://scanly.thekubics.space/ in plain markdown, for retrieval and citation.
+
+Canonical URL: https://scanly.thekubics.space/
+Source repository: https://github.com/TheKubics-org/Scanly
+Platform: Android 7.0 (API 24) and later
+Latest release referenced on this site: v1.1.0
+Licence: open source (see repository LICENSE)
+
+---
+
+## Positioning
+
+Scanly is a focused document scanner. It does one job well: turning physical paper into clean, correct digital files. It deliberately omits the account system, cloud mandate, and subscription tier that characterise commercial scanner apps, on the grounds that a scanner should not need to be trusted with your documents to be useful.
+
+The cloud integration is bring-your-own-storage. Credentials belong to the user, files go straight from the device to a provider the user already has an account with, and TheKubics operates no server that receives document content.
+
+## Section 01 — The product
+
+Scanly focuses on the part that matters: turning physical documents into clean, useful digital files. Scan, enhance, organize, and export from one focused workspace.
+
+The workflow runs in four stages: capture, clean, compose, export. Capture takes a page from the camera or the gallery. Clean applies automatic edge detection, perspective correction, and enhancement. Compose assembles multiple captures into a single ordered document. Export produces PDF or JPEG.
+
+## Section 02 — Capabilities
+
+Eight core features:
+
+**01 Smart Scanning.** Capture documents using the physical device camera, or import existing gallery images, with zero quality degradation.
+
+**02 Auto Crop.** Real-time quad-corner contour detection with pixel-precise edge snapping around physical document boundaries. Runs on-device, so no image leaves the phone to be analysed.
+
+**03 Perspective Correction.** A planar homography transformation straightens angled captures into planar, front-facing document surfaces.
+
+**04 Enhancement.** Improves readability with professional ColourMatrix processing. Filters: Auto Enhance, Grayscale, B&W, Hi-Contrast, Color Boost, Sharpen.
+
+**05 Multi-Page Composition.** Builds complete documents from multiple scans. Add, reorder, rotate, duplicate, and merge pages.
+
+**06 PDF Export.** Turns scanned pages into PDF files with configurable page sizes (A4, Letter) and compression tiers.
+
+**07 Document Library.** A local Room/SQLite database keeps all scans searchable, taggable, grouped into folders, and lockable behind device biometrics.
+
+**08 Cloud Storage.** Backs up documents to storage the user already owns — Telegram, S3/R2, or Google Drive — via WorkManager background workers, with an offline queue so uploads resume when connectivity returns.
+
+## Section 03 — Interface
+
+The camera viewfinder shows live document detection. Corner brackets track the detected quad, a status tag reports the detection state, and a pill confirms the locked paper size (for example A4). A laser line sweeps the frame to signal active scanning. Controls sit below the viewfinder: gallery import, a shutter control, and flash.
+
+An interactive enhancement preview lets the user drive brightness and contrast sliders and see the effect on a sample page rendered live in the browser, so filter behaviour can be evaluated before installing.
+
+The composer demonstrates multi-page assembly: add, reorder, rotate, and duplicate operations on a set of captured pages.
+
+## Section 04 — Workflow
+
+SCAN, AUTO-CROP, ENHANCE, COMPOSE, EXPORT. Each stage is independently reachable, and the document library keeps every intermediate result, so a user can return to a scan and re-run a later stage without recapturing.
+
+## Section 05 — Cloud storage
+
+Scanly is bring-your-own-storage (BYOS). Three backends are supported:
+
+- **Telegram** — Telegram Bot API, authenticated with a bot token the user supplies. Endpoint: `api.telegram.org`.
+- **Cloudflare R2 / S3-compatible** — authenticated with an access key and secret. Endpoint: `<account>.r2.cloudflarestorage.com`. Works with any S3-compatible object store.
+- **Google Drive** — authenticated with a service-account credentials JSON. Endpoint: `googleapis.com/drive/v3`.
+
+Credentials are stored on-device. Because the user supplies them, documents are transmitted directly to the provider the user chose, under that provider's terms. TheKubics neither receives nor stores document content.
+
+## Section 06 — Stack
+
+Core scanner: ML Kit for on-device document edge detection, Jetpack Compose for the interface, CameraX for capture, ColourMatrix for image processing, and a homography transform for perspective correction.
+
+Cloud and intelligence: Telegram Bot API, S3/R2 object storage, and Google Drive, driven by WorkManager with offline queueing.
+
+Ecosystem: Kotlin, Room for persistence, WorkManager for deferred work, and Android Keystore / hardware-backed keys for protecting stored credentials.
+
+## Section 07 — Privacy
+
+The application collects no personal information. No analytics SDK, no advertising SDK, no crash-reporting service, and no telemetry. Scanning, enhancement, composition, and PDF export all function with no network connection and no account.
+
+Documents remain in app-private storage until the user deletes them. Deleting a document, or purging trash, wipes the associated files immediately. Uninstalling removes all internal databases, cache files, and stored credentials.
+
+Optional cloud sync is user-initiated and user-configured, targeting only a provider the user nominates with their own credentials.
+
+Security architecture: master keys are generated inside the device hardware security module (Secure Element / TEE); the window can optionally set FLAG_SECURE to block screenshots and app-switcher previews; and storage follows modern Android scoped-storage and backup-extraction rules.
+
+## Section 08 — Roadmap
+
+Core scanner work, cloud and intelligence integrations, and ecosystem items are tracked in the public repository. The project ships free with no paid tier.
+
+## Website technical facts
+
+This site is a static build. It sets no cookies, runs no analytics, embeds no third-party JavaScript, and self-hosts its typefaces, so loading a page discloses no visitor IP address or referrer to any third party. The only client-side storage is the theme preference under the `localStorage` key `scanly-theme`. Hosting is GitHub Pages.
+
+## Attribution
+
+Scanly, the Scanly wordmark and logo, and TheKubics and its logo are trademarks of TheKubics. Telegram, Cloudflare, and Google Drive names and logos are the property of their respective owners and appear only to identify compatible backends. Scanly is not affiliated with, endorsed by, or sponsored by any of them.

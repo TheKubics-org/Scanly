@@ -1,0 +1,71 @@
+# robots.txt — Scanly (scanly.thekubics.space)
+# Open-source document scanner by TheKubics.
+#
+# This project deliberately OPENS itself to AI crawlers. The source is public,
+# the licence permits redistribution, and the documentation is meant to be read
+# and cited. Nothing here is paywalled or private.
+#
+# Machine-readable companion for language models:
+#   https://scanly.thekubics.space/llms.txt        (summary + index)
+#   https://scanly.thekubics.space/llms-full.txt   (full content in markdown)
+
+# ── Conventional crawlers ────────────────────────────────────────────────
+User-agent: *
+Allow: /
+Disallow: /assets/
+Host: scanly.thekubics.space
+
+# ── AI / LLM crawlers: explicitly allowed ────────────────────────────────
+# Listed individually for clarity. These are all covered by the * rule above;
+# naming them documents the intent and survives changes to that rule.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+# ── To opt out of AI indexing instead ─────────────────────────────────────
+# Delete every block in the AI section above and replace each with:
+#   User-agent: <name>
+#   Disallow: /
+# Do not add a blanket Disallow to the * group, or you will also block
+# conventional search engines.
+
+Sitemap: https://scanly.thekubics.space/sitemap.xml

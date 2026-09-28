@@ -1,0 +1,14 @@
+{
+  "name": "scanly-website",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Scanly — Smart Document Scanner | Product Website by TheKubics",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.3.0"
+  }
+}

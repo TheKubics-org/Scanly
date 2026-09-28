@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Scanly — Open Source Document Scanner for Android | TheKubics</title>
+
+  <meta name="description" content="Scanly is a free open-source document scanner for Android. Auto-crop, enhance and export to PDF, then sync to your own Telegram, S3/R2 or Drive. Offline-first.">
+  <meta name="author" content="TheKubics">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark light">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="keywords" content="document scanner, open source, android scanner, pdf scanner, auto crop, OCR, offline scanner, bring your own cloud, Telegram, S3, Cloudflare R2, Google Drive, TheKubics, Scanly">
+  <meta name="application-name" content="Scanly">
+  <meta name="generator" content="Vite">
+  <link rel="canonical" href="https://scanly.thekubics.space/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Scanly by TheKubics">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Scanly — Open Source Document Scanner for Android | TheKubics">
+  <meta property="og:description" content="Free, open-source document scanner for Android. Auto-crop, enhance, export to PDF, and sync to your own Telegram, S3/R2 or Drive. Offline-first.">
+  <meta property="og:url" content="https://scanly.thekubics.space/">
+  <meta property="og:image" content="https://scanly.thekubics.space/images/og-card.jpg">
+  <meta property="og:image:secure_url" content="https://scanly.thekubics.space/images/og-card.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Scanly — open source document scanner for Android, by TheKubics">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Scanly — Open Source Document Scanner for Android | TheKubics">
+  <meta name="twitter:description" content="Free, open-source document scanner for Android. Auto-crop, enhance, export to PDF, and sync to your own Telegram, S3/R2 or Drive. Offline-first.">
+  <meta name="twitter:image" content="https://scanly.thekubics.space/images/og-card.jpg">
+  <meta name="twitter:image:alt" content="Scanly — open source document scanner for Android, by TheKubics">
+
+  <!-- Icons & PWA -->
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://scanly.thekubics.space/#app",
+        "name": "Scanly",
+        "alternateName": "Scanly Document Scanner",
+        "url": "https://scanly.thekubics.space/",
+        "downloadUrl": "https://github.com/TheKubics-org/Scanly/releases/latest/download/app-release.apk",
+        "installUrl": "https://github.com/TheKubics-org/Scanly/releases/latest",
+        "softwareVersion": "1.1.0",
+        "applicationCategory": "BusinessApplication",
+        "applicationSubCategory": "Document Scanner",
+        "operatingSystem": "Android 7.0 (API 24) and later",
+        "description": "Open-source document scanner for Android. Capture pages with automatic document detection and perspective correction, enhance them, compose multi-page documents, export to PDF or JPEG, and sync to your own Telegram, S3/R2 or Google Drive storage. Works fully offline with no account required.",
+        "inLanguage": "en",
+        "isAccessibleForFree": true,
+        "license": "https://github.com/TheKubics-org/Scanly/blob/main/LICENSE",
+        "image": "https://scanly.thekubics.space/images/og-card.jpg",
+        "screenshot": "https://scanly.thekubics.space/images/og-card.jpg",
+        "featureList": [
+          "Automatic document detection and auto-crop",
+          "Perspective correction",
+          "Image enhancement filters",
+          "Multi-page document composition",
+          "PDF and JPEG export",
+          "Document library with search",
+          "Bring your own cloud storage",
+          "Offline-first operation",
+          "No account, no tracking"
+        ],
+        "softwareRequirements": "Android 7.0+",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": { "@id": "https://scanly.thekubics.space/#org" },
+        "publisher": { "@id": "https://scanly.thekubics.space/#org" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://scanly.thekubics.space/#org",
+        "name": "TheKubics",
+        "url": "https://thekubics.space/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://thekubics.space/logo.png"
+        },
+        "email": "thekubics.dev@gmail.com"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://scanly.thekubics.space/#website",
+        "url": "https://scanly.thekubics.space/",
+        "name": "Scanly",
+        "description": "Open-source document scanner for Android with bring-your-own cloud storage.",
+        "inLanguage": "en-US",
+        "publisher": { "@id": "https://scanly.thekubics.space/#org" }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preload" href="./fonts/manrope-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/fraunces-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./fonts.css">
+  <script type="module" crossorigin src="./assets/index-COvXujUA.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BQ2i2nwH.css">
+</head>
+<body>
+
+<!-- ============ MARQUEE TICKER ============ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span class="marquee-seq">SCANLY &bull; OPEN SOURCE DOCUMENT SCANNER &bull; BRING YOUR OWN CLOUD &bull; SCANLY &bull; OPEN SOURCE DOCUMENT SCANNER &bull; BRING YOUR OWN CLOUD &bull; </span>
+    <span class="marquee-seq">SCANLY &bull; OPEN SOURCE DOCUMENT SCANNER &bull; BRING YOUR OWN CLOUD &bull; SCANLY &bull; OPEN SOURCE DOCUMENT SCANNER &bull; BRING YOUR OWN CLOUD &bull; </span>
+  </div>
+</div>
+
+<a href="#main" class="skip-link">Skip to content</a>
+
+<!-- ============ SHIMMER LOADER ============ -->
+<div class="loader-overlay" id="loader">
+  <div class="loader-brand">
+    <img src="./images/scanly-logo.jpg" alt="Scanly" class="loader-logo">
+    <div class="loader-shimmer"></div>
+  </div>
+</div>
+<noscript><style>.loader-overlay{display:none!important}</style></noscript>
+
+<!-- Scroll progress - fixed at viewport top -->
+<div class="scroll-progress" aria-hidden="true"><div class="scroll-progress-fill"></div><span class="scroll-percent mono">0<i>%</i></span></div>
+
+<!-- ============ NAVIGATION ============ -->
+<nav id="nav" aria-label="Primary">
+  <div class="nav-bg" aria-hidden="true"></div>
+  <div class="nav-brand">
+    <a href="#top" class="brand-link" aria-label="Scanly Home">
+      <img src="./images/scanly-logo.jpg" alt="Scanly Logo" class="brand-logo-img">
+      <span class="brand-title">SCANLY</span>
+    </a>
+    <span class="brand-sep" aria-hidden="true">/</span>
+    <a href="https://thekubics.space/" target="_blank" rel="noopener noreferrer" class="parent-brand-link" title="Visit TheKubics">
+      <span class="parent-brand-by mono">By</span>
+      <img src="./images/TheKubics-logo-cropped.webp" alt="TheKubics" class="parent-logo-img">
+    </a>
+  </div>
+
+  <div class="nav-links" id="nav-links">
+    <a href="#product"><i class="nav-num mono">01</i> Product</a>
+    <a href="#features"><i class="nav-num mono">02</i> Capabilities</a>
+    <a href="#interface"><i class="nav-num mono">03</i> Interface</a>
+    <a href="#workflow"><i class="nav-num mono">04</i> Workflow</a>
+    <a href="#enhancement"><i class="nav-num mono">05</i> Processing</a>
+    <a href="#cloud"><i class="nav-num mono">06</i> Cloud</a>
+    <a href="#stack"><i class="nav-num mono">07</i> Stack</a>
+    <a href="#roadmap"><i class="nav-num mono">08</i> Roadmap</a>
+    <div class="nav-divider"></div>
+    <a href="https://github.com/TheKubics-org/Scanly" target="_blank" rel="noopener noreferrer" class="pill pill-ghost mono">GitHub</a>
+    <a href="#cta" class="pill pill-primary">Launch Scanly</a>
+  </div>
+
+  <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-links">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+
+  <div class="nav-right">
+    <div class="theme-toggle" role="group" aria-label="Theme selection">
+      <button class="theme-btn" data-theme="dark" aria-pressed="false" title="Dark theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="theme-btn" data-theme="light" aria-pressed="false" title="Light theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="theme-btn" data-theme="system" aria-pressed="false" title="System theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-brand-badge reveal" style="--d:.05s">
+        <img src="./images/TheKubics-cube.png" alt="" class="hero-cube-icon" aria-hidden="true">
+        <span class="eyebrow mono">PRODUCT / 01 · BY THEKUBICS</span>
+      </div>
+      <div class="hero-logo reveal" style="--d:.1s">
+        <img src="./images/scanly-logo.jpg" alt="Scanly" class="hero-logo-img" aria-hidden="true">
+        <div class="hero-logo-stack">
+          <span class="hero-logo-text">Scanly</span>
+          <span class="hero-logo-version mono">Latest &middot; v1.1.0</span>
+        </div>
+      </div>
+      <h1 class="display-h hero-title reveal" style="--d:.05s">
+        <span class="hero-line">Paper,</span>
+        <span class="hero-line"><span class="text-accent">processed.</span></span>
+      </h1>
+      <p class="hero-sub reveal" style="--d:.1s">Scanly is a focused document scanner for capturing, cleaning, organizing, and exporting documents without the clutter.</p>
+      <div class="hero-actions reveal" style="--d:.15s">
+        <a href="https://github.com/TheKubics-org/Scanly/releases/latest/download/app-release.apk" target="_blank" rel="noopener noreferrer" class="pill pill-primary pill-lg">
+          <span class="pill-label">Download Latest</span>
+          <span class="pill-version mono">v1.1.0</span>
+          <span class="pill-arrow">&rarr;</span>
+        </a>
+        <a href="https://github.com/TheKubics-org/Scanly" target="_blank" rel="noopener noreferrer" class="pill pill-ghost pill-lg mono">View on GitHub</a>
+      </div>
+      <div class="hero-meta mono reveal" style="--d:.2s">
+        <span>Built by TheKubics</span>
+        <span class="meta-dot">&bull;</span>
+        <span>Open Source</span>
+        <span class="meta-dot">&bull;</span>
+        <span>2026</span>
+      </div>
+    </div>
+
+    <!-- Product Interface Hero Mockup -->
+    <div class="hero-visual reveal" style="--d:.2s">
+      <div class="phone-frame">
+        <div class="phone-speaker"></div>
+        <div class="phone-screen">
+          <!-- Status Bar -->
+          <div class="ui-status-bar mono">
+            <span class="ui-time" id="ui-time">--:--</span>
+            <div class="ui-notch"></div>
+            <div class="ui-icons">
+              <span class="ui-signal" id="ui-signal" aria-label="Signal strength"></span>
+              <span class="ui-wifi" id="ui-wifi" aria-label="Wi-Fi connected"></span>
+              <span class="ui-batt" id="ui-batt" aria-label="Battery level">
+                <span class="ui-batt-shell"><span class="ui-batt-fill" id="ui-batt-fill"></span></span>
+                <span id="ui-batt-pct">--%</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Camera Viewfinder -->
+          <div class="camera-body">
+            <div class="viewfinder-lens">
+              <div class="hud-tag mono">AUTO DETECT &bull; ACTIVE</div>
+              
+              <!-- Document Sheet -->
+              <div class="detected-doc">
+                <div class="laser-scanner" aria-hidden="true"></div>
+                <div class="bracket corner-tl"></div>
+                <div class="bracket corner-tr"></div>
+                <div class="bracket corner-bl"></div>
+                <div class="bracket corner-br"></div>
+                
+                <div class="doc-mock-content">
+                  <div class="mock-line header-line"></div>
+                  <div class="mock-line text-line full"></div>
+                  <div class="mock-line text-line full"></div>
+                  <div class="mock-line text-line three-quarter"></div>
+                  <div class="mock-line text-line half"></div>
+                  <div class="mock-table">
+                    <span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="detection-pill mono">
+                <span class="detection-dot"></span>
+                <span>DOCUMENT BOUNDS LOCKED (A4)</span>
+              </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="camera-controls">
+              <div class="control-icon-btn" title="Gallery">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              </div>
+              <button class="shutter-btn" aria-label="Capture document">
+                <span class="shutter-inner"></span>
+              </button>
+              <div class="control-icon-btn" title="Flash">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATUS STRIP ============ -->
+<div class="status-strip">
+  <div class="status-inner mono">
+    <div class="status-item">
+      <span class="status-badge-dot"></span>
+      <span class="status-label">SCANLY &bull; SMART DOCUMENT SCANNER</span>
+    </div>
+    <div class="status-item">
+      <span class="status-muted">CORE ENGINE:</span>
+      <span class="text-accent">ML KIT + JETPACK COMPOSE</span>
+    </div>
+    <div class="status-item">
+      <span class="status-muted">SYSTEM STATUS:</span>
+      <span class="status-value">AVAILABLE / OFFLINE FIRST</span>
+    </div>
+    <div class="status-item">
+      <span class="status-muted">BUILD:</span>
+      <span>v1.1.0 &bull; 2026</span>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+
+<!-- ============ 01 / THE PRODUCT ============ -->
+<section id="product" class="section">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-head-copy">
+        <span class="eyebrow mono reveal">01 / THE PRODUCT</span>
+        <h2 class="display-h section-title reveal">
+          Scanning,<br><span class="text-muted">without the noise.</span>
+        </h2>
+      </div>
+      <p class="section-lead reveal" style="--d:.1s">
+        Scanly focuses on the part that matters: turning physical documents into clean, useful digital files. Scan, enhance, organize, and export from one focused workspace.
+      </p>
+    </div>
+
+    <div class="intro-grid stagger">
+      <article class="card intro-card reveal">
+        <div class="card-num-wrap">
+          <span class="num mono">01</span>
+          <span class="card-label mono">STAGE I</span>
+        </div>
+        <h3 class="card-title">Capture</h3>
+        <p class="card-desc">Automatic edge detection, smart camera viewfinder, and high-resolution multi-frame capture with Google ML Kit.</p>
+        <ul class="tags mono">
+          <li>Auto Edge</li><li>Perspective Correction</li><li>Multi-Frame Capture</li>
+        </ul>
+      </article>
+
+      <article class="card intro-card reveal" style="--d:.1s">
+        <div class="card-num-wrap">
+          <span class="num mono">02</span>
+          <span class="card-label mono">STAGE II</span>
+        </div>
+        <h3 class="card-title">Clean</h3>
+<p class="card-desc">Hardware-accelerated color filters, contrast enhancement, and intelligent legibility filters.</p>
+        <ul class="tags mono">
+          <li>Auto Enhance</li><li>B&W Clean</li><li>Contrast Boost</li>
+        </ul>
+      </article>
+
+      <article class="card intro-card reveal" style="--d:.2s">
+        <div class="card-num-wrap">
+          <span class="num mono">03</span>
+          <span class="card-label mono">STAGE III</span>
+        </div>
+        <h3 class="card-title">Export</h3>
+        <p class="card-desc">Export pristine PDFs and lossless images. Multi-page composition, custom naming, and optional encrypted cloud backup (single-device).</p>
+        <ul class="tags mono">
+          <li>PDF Export</li><li>Lossless JPG</li><li>Cloud Backup</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 / CAPABILITIES ============ -->
+<section id="features" class="section section-alt">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-head-copy">
+        <span class="eyebrow mono reveal">02 / CAPABILITIES</span>
+        <h2 class="display-h section-title reveal">
+          Everything needed<br><span class="text-muted">to scan properly.</span>
+        </h2>
+      </div>
+      <p class="section-lead reveal" style="--d:.1s">
+        Eight core architectural features engineered for high throughput, local privacy, and uncompromising fidelity.
+      </p>
+    </div>
+
+    <div class="cap-grid stagger">
+      <article class="cap-card reveal">
+        <span class="cap-num mono">01</span>
+        <h3 class="cap-name">Smart Scanning</h3>
+        <p class="cap-desc">Capture documents using physical device camera or import existing gallery images with zero quality degradation.</p>
+        <span class="cap-tag mono">CAMERA CAPTURE + DETECTION</span>
+      </article>
+
+      <article class="cap-card reveal" style="--d:.04s">
+        <span class="cap-num mono">02</span>
+        <h3 class="cap-name">Auto Crop</h3>
+        <p class="cap-desc">Real-time quad-corner contour detection with pixel-precise edge snapping around physical document boundaries.</p>
+        <span class="cap-tag mono">ML KIT QUAD DETECTION</span>
+      </article>
+
+      <article class="cap-card reveal" style="--d:.08s">
+        <span class="cap-num mono">03</span>
+        <h3 class="cap-name">Perspective Correction</h3>
+        <p class="cap-desc">Planar homography transformation straightens angled scans into planar, front-facing document surfaces.</p>
+        <span class="cap-tag mono">HOMOGRAPHY RECTIFICATION</span>
+      </article>
+
+      <article class="cap-card reveal" style="--d:.12s">
+        <span class="cap-num mono">04</span>
+        <h3 class="cap-name">Enhancement</h3>
+        <p class="cap-desc">Improve readability with professional ColorMatrix processing: Auto Enhance, Grayscale, B&amp;W, Hi-Contrast, Color Boost, Sharpen.</p>
+        <span class="cap-tag mono">COLOR MATRIX FILTERS</span>
+      </article>
+
+      <article class="cap-card reveal" style="--d:.16s">
+        <span class="cap-num mono">05</span>
+        <h3 class="cap-name">Multi-Page Composition</h3>
+        <p class="cap-desc">Build complete documents from multiple scans. Add, reorder, rotate, duplicate, and merge pages effortlessly.</p>
+        <span class="cap-tag mono">COMPOSER + BATCH OPS</span>
+      </article>
+
+      <article class="cap-card reveal" style="--d:.20s">
+        <span class="cap-num mono">06</span>
+        <h3 class="cap-name">PDF Export</h3>
+        <p class="cap-desc">Turn scanned pages into professional PDF files with configurable page sizes (A4, Letter) and compression tiers.</p>
+        <span class="cap-tag mono">PDF GENERATOR ENGINE</span>
+      </article>
+
+      <article class="cap-card reveal" style="--d:.24s">
+        <span class="cap-num mono">07</span>
+        <h3 class="cap-name">Document Library</h3>
+        <p class="cap-desc">Room SQLite local database keeps all your scans searchable, tagged, grouped into folders, and locked by biometrics.</p>
+        <span class="cap-tag mono">ROOM DB + BIOMETRICS</span>
+      </article>
+
+      <article class="cap-card reveal" style="--d:.28s">
+        <span class="cap-num mono">08</span>
+        <h3 class="cap-name">Cloud Storage</h3>
+        <p class="cap-desc">Back up documents to your own cloud (Telegram, S3/R2, Google Drive) via WorkManager background workers with offline queueing.</p>
+        <span class="cap-tag mono">WORKMANAGER + BYOS</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 / THE INTERFACE ============ -->
+<section id="interface" class="section">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-head-copy">
+        <span class="eyebrow mono reveal">03 / THE INTERFACE</span>
+        <h2 class="display-h section-title reveal">
+          Designed around<br><span class="text-muted">the scan.</span>
+        </h2>
+      </div>
+      <p class="section-lead reveal" style="--d:.1s">
+        Four focused product interfaces crafted with Material Design 3 and Jetpack Compose. Clean lines, dark ergonomics, and instant response.
+      </p>
+    </div>
+
+    <div class="interface-grid stagger">
+      <!-- Card 1: Scanner -->
+      <div class="device-card reveal">
+        <div class="device-window">
+          <div class="device-topbar mono">
+            <span class="device-time">09:41</span>
+            <span class="device-title">SCANNER</span>
+            <span class="device-batt">100%</span>
+          </div>
+          <div class="device-viewport scanner-viewport">
+            <div class="mini-viewfinder">
+              <div class="mini-bracket c-tl"></div>
+              <div class="mini-bracket c-tr"></div>
+              <div class="mini-bracket c-bl"></div>
+              <div class="mini-bracket c-br"></div>
+              <div class="mini-laser"></div>
+              <div class="mini-doc-preview">
+                <span class="mini-line w-60"></span>
+                <span class="mini-line w-90"></span>
+                <span class="mini-line w-80"></span>
+                <span class="mini-line w-40"></span>
+              </div>
+            </div>
+            <div class="mini-shutter-bar">
+              <span class="mini-icon">&bull;</span>
+              <span class="mini-shutter"></span>
+              <span class="mini-icon">&#9889;</span>
+            </div>
+          </div>
+        </div>
+        <div class="device-meta">
+          <span class="device-num mono">01</span>
+          <span class="device-name mono">SCANNER UI</span>
+          <span class="device-desc">Live ML Kit Quad Edge Detection</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Editor -->
+      <div class="device-card reveal" style="--d:.1s">
+        <div class="device-window">
+          <div class="device-topbar mono">
+            <span class="device-time">09:41</span>
+            <span class="device-title">EDITOR</span>
+            <span class="device-batt">100%</span>
+          </div>
+          <div class="device-viewport editor-viewport">
+            <div class="mini-editor-sheet">
+              <div class="sheet-corner"></div>
+              <span class="mini-line w-70"></span>
+              <span class="mini-line w-95"></span>
+              <span class="mini-line w-90"></span>
+              <span class="mini-line w-60"></span>
+            </div>
+            <div class="mini-filter-pills mono">
+              <span class="m-pill active">Auto</span>
+              <span class="m-pill">B&amp;W</span>
+              <span class="m-pill">Color</span>
+            </div>
+            <div class="mini-slider-box mono">
+              <span>CONTRAST</span>
+              <div class="mini-track"><div class="mini-thumb"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="device-meta">
+          <span class="device-num mono">02</span>
+          <span class="device-name mono">EDITOR UI</span>
+          <span class="device-desc">ColorMatrix Enhancement &amp; Adjustments</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Library -->
+      <div class="device-card reveal" style="--d:.2s">
+        <div class="device-window">
+          <div class="device-topbar mono">
+            <span class="device-time">09:41</span>
+            <span class="device-title">LIBRARY</span>
+            <span class="device-batt">100%</span>
+          </div>
+          <div class="device-viewport library-viewport">
+            <div class="mini-search mono">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <span>Search scans...</span>
+            </div>
+            <div class="mini-grid">
+              <div class="mini-card-item mono">
+                <div class="m-thumb"></div>
+                <span>INV_001</span>
+              </div>
+              <div class="mini-card-item mono">
+                <div class="m-thumb"></div>
+                <span>TAX_2026</span>
+              </div>
+              <div class="mini-card-item mono">
+                <div class="m-thumb"></div>
+                <span>AGMT_V2</span>
+              </div>
+              <div class="mini-card-item mono">
+                <div class="m-thumb"></div>
+                <span>REC_AUG</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="device-meta">
+          <span class="device-num mono">03</span>
+          <span class="device-name mono">LIBRARY UI</span>
+          <span class="device-desc">Room SQLite Catalog &amp; Folders</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Cloud -->
+      <div class="device-card reveal" style="--d:.3s">
+        <div class="device-window">
+          <div class="device-topbar mono">
+            <span class="device-time">09:41</span>
+            <span class="device-title">CLOUD SYNC</span>
+            <span class="device-batt">100%</span>
+          </div>
+          <div class="device-viewport cloud-viewport">
+            <div class="mini-cloud-meter">
+              <div class="meter-bar"><div class="meter-fill" style="width: 32%"></div></div>
+              <span class="mono meter-text">1.2 GB / 10 GB USED</span>
+            </div>
+            <div class="mini-cloud-rows mono">
+              <div class="m-cloud-row">
+                <span class="sync-dot synced"></span>
+                <span class="row-name">Contract_2026.pdf</span>
+                <span class="row-status">SYNCED</span>
+              </div>
+              <div class="m-cloud-row">
+                <span class="sync-dot synced"></span>
+                <span class="row-name">Invoice_Aug.pdf</span>
+                <span class="row-status">SYNCED</span>
+              </div>
+              <div class="m-cloud-row">
+                <span class="sync-dot active"></span>
+                <span class="row-name">Scan_Receipt.pdf</span>
+                <span class="row-status text-accent">UPLOADING</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="device-meta">
+          <span class="device-num mono">04</span>
+          <span class="device-name mono">CLOUD DASHBOARD</span>
+          <span class="device-desc">Storage Quotas &amp; Background Sync</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04 / WORKFLOW ============ -->
+<section id="workflow" class="section section-alt">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-head-copy">
+        <span class="eyebrow mono reveal">04 / WORKFLOW</span>
+        <h2 class="display-h section-title reveal">
+          Capture.<br><span class="text-muted">Correct.</span><br><span class="text-muted-2">Export.</span>
+        </h2>
+      </div>
+      <p class="section-lead reveal" style="--d:.1s">
+        An engineering process pipeline. Each scan traverses five deterministic steps from optical sensor to verified document.
+      </p>
+    </div>
+
+    <div class="workflow-steps stagger">
+      <div class="workflow-col reveal">
+        <div class="step-num-line">
+          <span class="mono step-no">01</span>
+          <div class="step-line" aria-hidden="true"></div>
+        </div>
+        <h3 class="step-heading mono">SCAN</h3>
+        <p class="step-body">Optical capture via high-res sensor with automatic document boundary sensing.</p>
+      </div>
+
+      <div class="workflow-col reveal" style="--d:.08s">
+        <div class="step-num-line">
+          <span class="mono step-no">02</span>
+          <div class="step-line" aria-hidden="true"></div>
+        </div>
+        <h3 class="step-heading mono">AUTO-CROP</h3>
+        <p class="step-body">ML Kit quad detection auto-crops to document boundaries — no manual adjustment needed.</p>
+      </div>
+
+      <div class="workflow-col reveal" style="--d:.16s">
+        <div class="step-num-line">
+          <span class="mono step-no">03</span>
+          <div class="step-line" aria-hidden="true"></div>
+        </div>
+        <h3 class="step-heading mono">ENHANCE</h3>
+        <p class="step-body">ColorMatrix filters: auto-enhance, grayscale, B&W, contrast, color boost, sharpen for legibility.</p>
+      </div>
+
+      <div class="workflow-col reveal" style="--d:.24s">
+        <div class="step-num-line">
+          <span class="mono step-no">04</span>
+          <div class="step-line" aria-hidden="true"></div>
+        </div>
+        <h3 class="step-heading mono">COMPOSE</h3>
+        <p class="step-body">Multi-page assembly, page reordering, rotation normalization, and metadata tagging.</p>
+      </div>
+
+      <div class="workflow-col reveal" style="--d:.32s">
+        <div class="step-num-line">
+          <span class="mono step-no">05</span>
+          <div class="step-line" aria-hidden="true"></div>
+        </div>
+        <h3 class="step-heading mono">EXPORT</h3>
+        <p class="step-body">Lossless PDF generation, JPEG packaging, or instant cloud archive dispatch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 / IMAGE PROCESSING ============ -->
+<section id="enhancement" class="section section-alt">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-head-copy">
+        <span class="eyebrow mono reveal">05 / IMAGE PROCESSING</span>
+        <h2 class="display-h section-title reveal">
+          Make the scan<br><span class="text-muted">read like a document.</span>
+        </h2>
+      </div>
+      <p class="section-lead reveal" style="--d:.1s">
+        Interactive preview. Test the filter algorithms and adjustments applied by the Scanly engine.
+      </p>
+    </div>
+
+    <div class="filter-playground reveal">
+      <!-- Document Preview Stage -->
+      <div class="playground-stage">
+        <div class="stage-document-wrapper">
+          <div class="stage-document" id="interactiveDoc">
+            <div class="stage-doc-header">
+              <span class="doc-badge mono">OFFICIAL INVOICE</span>
+              <span class="doc-date mono">AUG 2026</span>
+            </div>
+            <div class="stage-doc-lines">
+              <div class="s-line s-title"></div>
+              <div class="s-line s-sub"></div>
+              <div class="s-spacer"></div>
+              <div class="s-line s-full"></div>
+              <div class="s-line s-full"></div>
+              <div class="s-line s-three-quarter"></div>
+              <div class="s-spacer"></div>
+              <div class="s-table-mock">
+                <div class="table-head"></div>
+                <div class="table-row"></div>
+                <div class="table-row"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stage-caption mono">Scanly processing preview &bull; Live CSS render</div>
+      </div>
+
+      <!-- Controls Panel -->
+      <div class="playground-controls">
+        <div class="control-block">
+          <label class="control-label mono">ENHANCEMENT MODE</label>
+<div class="mode-buttons-group">
+            <button class="mode-pill active mono" data-mode="original">Original</button>
+            <button class="mode-pill mono" data-mode="auto">Auto Enhance</button>
+            <button class="mode-pill mono" data-mode="grayscale">Grayscale</button>
+            <button class="mode-pill mono" data-mode="bw">B&W Clean</button>
+            <button class="mode-pill mono" data-mode="contrast">Hi-Contrast</button>
+            <button class="mode-pill mono" data-mode="color">Color Boost</button>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <div class="slider-row">
+            <span class="mono slider-name">BRIGHTNESS</span>
+            <span class="mono slider-val" id="brightnessVal">0</span>
+          </div>
+          <input type="range" min="-50" max="50" value="0" class="tech-slider" id="brightnessSlider"
+                 aria-label="Brightness" aria-describedby="brightnessVal">
+        </div>
+
+        <div class="control-block">
+          <div class="slider-row">
+            <span class="mono slider-name">CONTRAST</span>
+            <span class="mono slider-val" id="contrastVal">0</span>
+          </div>
+          <input type="range" min="-50" max="50" value="0" class="tech-slider" id="contrastSlider"
+                 aria-label="Contrast" aria-describedby="contrastVal">
+        </div>
+
+        <div class="control-block">
+          <button class="pill pill-ghost pill-sm mono" id="resetFiltersBtn">Reset Parameters</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 06 / CLOUD ============ -->
+<section id="cloud" class="section">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-head-copy">
+        <span class="eyebrow mono reveal">06 / CLOUD STORAGE</span>
+        <h2 class="display-h section-title reveal">
+          Your documents,<br><span class="text-muted">where you need them.</span>
+        </h2>
+      </div>
+      <p class="section-lead reveal" style="--d:.1s">
+        Optional cloud backup and cross-device sync. Completely decoupled from offline use — local scanning never requires an account.
+      </p>
+    </div>
+
+    <div class="cloud-layout reveal">
+      <div class="cloud-diagram">
+        <div class="node-device mono">LOCAL DEVICE</div>
+        <div class="sync-arrows">
+          <span class="mono">&uarr; ENCRYPTED BACKUP</span>
+          <span class="mono">&darr; LOSSLESS RESTORE</span>
+        </div>
+        <div class="node-cloud mono">
+          <span class="cloud-pulse"></span>
+          SCANLY CLOUD REPOSITORY
+        </div>
+      </div>
+
+      <div class="cloud-panel">
+        <div class="cloud-panel-header mono">
+          <span>CONFIGURED PROVIDERS</span>
+          <span class="status-pill-ok">BYOS MODE</span>
+        </div>
+
+        <div class="provider-grid stagger">
+          <article class="provider-card">
+            <div class="provider-icon tg" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            </div>
+            <div class="provider-info">
+              <h3 class="provider-name mono">TG</h3>
+              <p class="provider-desc mono">Telegram Bot API</p>
+              <div class="provider-status">
+                <span class="status-dot active"></span>
+                <span class="mono">ENDPOINT: api.telegram.org</span>
+              </div>
+            </div>
+            <span class="provider-tag mono">BOT TOKEN</span>
+          </article>
+
+          <article class="provider-card">
+            <div class="provider-icon r2" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5088 16.8447c.1475-.5068.0908-.9707-.1553-1.3154-.2246-.3164-.6045-.499-1.0615-.5205l-8.6592-.1123a.1559.1559 0 0 1-.1333-.0713c-.0283-.042-.0351-.0986-.021-.1553.0278-.084.1123-.1484.2036-.1562l8.7359-.1123c1.0351-.0489 2.1601-.8868 2.5537-1.9136l.499-1.3013c.0215-.0561.0293-.1128.0147-.168-.5625-2.5463-2.835-4.4453-5.5499-4.4453-2.5039 0-4.6284 1.6177-5.3876 3.8614-.4927-.3658-1.1187-.5625-1.794-.499-1.2026.119-2.1665 1.083-2.2861 2.2856-.0283.31-.0069.6128.0635.894C1.5683 13.171 0 14.7754 0 16.752c0 .1748.0142.3515.0352.5273.0141.083.0844.1475.1689.1475h15.9814c.0909 0 .1758-.0645.2032-.1553l.12-.4268zm2.7568-5.5634c-.0771 0-.1611 0-.2383.0112-.0566 0-.1054.0415-.127.0976l-.3378 1.1744c-.1475.5068-.0918.9707.1543 1.3164.2256.3164.6055.498 1.0625.5195l1.8437.1133c.0557 0 .1055.0263.1329.0703.0283.043.0351.1074.0214.1562-.0283.084-.1132.1485-.204.1553l-1.921.1123c-1.041.0488-2.1582.8867-2.5527 1.914l-.1406.3585c-.0283.0713.0215.1416.0986.1416h6.5977c.0771 0 .1474-.0489.169-.126.1122-.4082.1757-.837.1757-1.2803 0-2.6025-2.125-4.727-4.7344-4.727"/></svg>
+            </div>
+            <div class="provider-info">
+              <h3 class="provider-name mono">R2</h3>
+              <p class="provider-desc mono">Cloudflare R2 / S3 Compatible</p>
+              <div class="provider-status">
+                <span class="status-dot active"></span>
+                <span class="mono">ENDPOINT: <account>.r2.cloudflarestorage.com</span>
+              </div>
+            </div>
+            <span class="provider-tag mono">ACCESS KEY</span>
+          </article>
+
+          <article class="provider-card">
+            <div class="provider-icon drive" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path fill="#00AC47" d="M12.01 1.485c-2.082 0-3.754.02-3.743.047.01.02 1.708 3.001 3.774 6.62l3.76 6.574h3.76c2.081 0 3.753-.02 3.742-.047-.005-.02-1.708-3.001-3.775-6.62l-3.76-6.574z"/><path fill="#4285F4" d="M7.25 3.215c.005.005.85 1.49 1.88 3.287l1.88 3.287-3.618 6.33-3.62 6.335L1.89 19.166 0 15.868l3.62-6.334a789.861 789.861 0 0 1 3.63-6.319z"/><path fill="#FFBA00" d="M9.509 15.138l-.203.348c-.114.198-.96 1.672-1.88 3.287a423.93 423.931 0 0 1-1.698 2.97c-.01.026 3.24.042 7.222.042h7.244l1.796-3.157c.992-1.734 1.85-3.23 1.906-3.323l.104-.167h-7.249z"/></svg>
+            </div>
+            <div class="provider-info">
+              <h3 class="provider-name mono">DRIVE</h3>
+              <p class="provider-desc mono">Google Drive (OAuth2 / Service Account)</p>
+              <div class="provider-status">
+                <span class="status-dot"></span>
+                <span class="mono">ENDPOINT: googleapis.com/drive/v3</span>
+              </div>
+            </div>
+            <span class="provider-tag mono">CREDENTIALS JSON</span>
+          </article>
+        </div>
+
+        <div class="provider-note mono">
+          <span>BYOS = Bring Your Own Storage</span>
+          <span class="text-accent">•</span>
+          <span>Credentials stored in encrypted vault</span>
+          <span class="text-accent">•</span>
+          <span>Zero Scanly-hosted infrastructure</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 07 / STACK ============ -->
+<section id="stack" class="section">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-head-copy">
+        <span class="eyebrow mono reveal">07 / THE STACK</span>
+        <h2 class="display-h section-title reveal">
+          Built with tools<br><span class="text-muted">that ship.</span>
+        </h2>
+      </div>
+      <p class="section-lead reveal" style="--d:.1s">
+        No inflated dependency counts. Just what powers your scans, listed honestly.
+      </p>
+    </div>
+
+    <ul class="tool-grid stagger">
+      <li class="tool-card">
+        <span class="chip mono">Mobile</span>
+        <svg class="tool-logo" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L20 5v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z"/><text x="12" y="15.6" text-anchor="middle" font-size="9" font-weight="700" font-family="JetBrains Mono, monospace" style="fill:var(--bg)">K</text></svg>
+        <span class="tool-name">Kotlin</span>
+        <span class="tool-bar" aria-hidden="true"></span>
+      </li>
+
+      <li class="tool-card">
+        <span class="chip mono">UI</span>
+        <svg class="tool-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 9h18M9 21V9"/></svg>
+        <span class="tool-name">Jetpack Compose</span>
+        <span class="tool-bar" aria-hidden="true"></span>
+      </li>
+
+      <li class="tool-card">
+        <span class="chip mono">ML</span>
+        <svg class="tool-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/><path d="M7 8l3 3M14 13l3 3M7 16l3-3M14 11l3-3"/></svg>
+        <span class="tool-name">Google ML Kit</span>
+        <span class="tool-bar" aria-hidden="true"></span>
+      </li>
+
+      <li class="tool-card">
+        <span class="chip mono">DI</span>
+        <svg class="tool-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span class="tool-name">Dagger Hilt</span>
+        <span class="tool-bar" aria-hidden="true"></span>
+      </li>
+
+      <li class="tool-card">
+        <span class="chip mono">Data</span>
+        <svg class="tool-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>
+        <span class="tool-name">Room SQLite</span>
+        <span class="tool-bar" aria-hidden="true"></span>
+      </li>
+
+      <li class="tool-card">
+        <span class="chip mono">Background</span>
+        <svg class="tool-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="tool-name">WorkManager</span>
+        <span class="tool-bar" aria-hidden="true"></span>
+      </li>
+
+      <li class="tool-card">
+        <span class="chip mono">Security</span>
+        <svg class="tool-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span class="tool-name">Android Biometric</span>
+        <span class="tool-bar" aria-hidden="true"></span>
+      </li>
+
+      <li class="tool-card">
+        <span class="chip mono">Graphics</span>
+        <svg class="tool-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span class="tool-name">Coil 3 Image Engine</span>
+        <span class="tool-bar" aria-hidden="true"></span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 08 / ROADMAP ============ -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-head-copy">
+        <span class="eyebrow mono reveal">08 / ROADMAP</span>
+        <h2 class="display-h section-title reveal">
+          What we're<br><span class="text-muted">shipping next.</span>
+        </h2>
+      </div>
+    </div>
+
+    <div class="roadmap-cols stagger">
+      <div class="roadmap-card reveal">
+        <span class="rm-tag mono text-accent">NOW &bull; LIVE</span>
+        <h3 class="rm-title">Core Scanner v1.0</h3>
+        <ul class="rm-list mono">
+          <li>&bull; ML Kit Edge Detection</li>
+          <li>&bull; Lossless PDF Exporter</li>
+          <li>&bull; Room SQLite Local Library</li>
+          <li>&bull; Biometric App Lock</li>
+          <li>&bull; ColorMatrix Filters (Auto, B&W, Contrast, Color Boost, Sharpen)</li>
+        </ul>
+      </div>
+
+<div class="roadmap-card reveal" style="--d:.1s">
+        <span class="rm-tag mono">NEXT &bull; IN DEVELOPMENT</span>
+        <h3 class="rm-title">Cloud & Intelligence</h3>
+        <ul class="rm-list mono">
+          <li>&bull; Multi-Device Cloud Sync</li>
+          <li>&bull; Custom Document Watermarks</li>
+          <li>&bull; Batch Multi-Page Scan Mode</li>
+          <li>&bull; Shadow Removal Filter</li>
+        </ul>
+      </div>
+
+      <div class="roadmap-card reveal" style="--d:.2s">
+        <span class="rm-tag mono text-muted">LATER &bull; PLANNED</span>
+        <h3 class="rm-title">Ecosystem</h3>
+        <ul class="rm-list mono">
+          <li>&bull; Web Companion Dashboard</li>
+          <li>&bull; Smart Categorization</li>
+          <li>&bull; Encrypted Vault Sync</li>
+          <li>&bull; Cross-Platform Desktop Client</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11 / OPEN SOURCE & PARENT BRAND ============ -->
+<section class="section section-alt" id="thekubics">
+  <div class="section-inner thekubics-inner">
+    <div class="thekubics-brand-container reveal">
+      <div class="thekubics-banner-head">
+        <img src="./images/TheKubics-cube.png" alt="TheKubics Cube" class="thekubics-cube-hero">
+        <span class="eyebrow mono">PARENT BRAND &bull; SOFTWARE STUDIO</span>
+      </div>
+
+      <div class="thekubics-logo-wrap">
+        <picture>
+          <source srcset="./images/TheKubics-logo-cropped.webp" type="image/webp">
+          <img src="./images/TheKubics-logo-cropped.png" alt="TheKubics" class="thekubics-full-logo" width="380">
+        </picture>
+      </div>
+
+      <h2 class="display-h thekubics-heading">
+        Built by TheKubics.
+      </h2>
+      <p class="thekubics-copy">
+        TheKubics builds focused software for web, mobile, desktop, and automation. Scanly is crafted with the same uncompromising standards: clean architecture, deterministic performance, and zero bloat.
+      </p>
+
+      <div class="thekubics-actions">
+        <a href="https://thekubics.space/" target="_blank" rel="noopener noreferrer" class="pill pill-primary pill-lg">
+          Visit TheKubics Studio &rarr;
+        </a>
+        <a href="https://github.com/TheKubics-org/Scanly" target="_blank" rel="noopener noreferrer" class="pill pill-ghost pill-lg mono">
+          View Repository on GitHub
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section id="cta" class="section cta-section">
+  <div class="cta-frame reveal">
+    <span class="corner corner-tl" aria-hidden="true"></span>
+    <span class="corner corner-br" aria-hidden="true"></span>
+    <div class="cta-inner">
+      <span class="eyebrow mono">SCANLY / READY</span>
+      <h2 class="display-h cta-title">Stop carrying paper.</h2>
+      <p class="cta-sub">Scan it. Clean it. Keep it. A focused Android document scanner that respects your privacy.</p>
+      <div class="cta-buttons">
+        <a href="https://github.com/TheKubics-org/Scanly/releases/download/v1.1.0/Scanly-v1.1.0.apk" target="_blank" rel="noopener noreferrer" class="pill pill-primary pill-lg">
+          Download Latest APK <span class="pill-arrow">&rarr;</span>
+        </a>
+        <a href="https://github.com/TheKubics-org/Scanly" target="_blank" rel="noopener noreferrer" class="pill pill-ghost pill-lg mono">
+          Star on GitHub
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="footer-inner stagger">
+    <div class="footer-brand">
+      <div class="footer-brand-title-wrap">
+        <img src="./images/scanly-logo.jpg" alt="Scanly Logo" class="footer-logo-img">
+        <span class="footer-brand-name">SCANLY</span>
+      </div>
+      <p class="footer-tag">Smart Document Scanner. Paper, digitized properly.</p>
+      <div class="footer-parent-badge">
+        <a href="https://thekubics.space/" target="_blank" rel="noopener noreferrer" class="footer-parent-link" title="Visit TheKubics Studio">
+          <img src="./images/TheKubics-cube.png" alt="TheKubics" class="footer-cube-icon">
+          <span class="mono">A focused product by <strong>TheKubics</strong></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h3 class="footer-head mono">Product</h3>
+      <a href="#product">Product</a>
+      <a href="#features">Capabilities</a>
+      <a href="#interface">Interface</a>
+      <a href="#workflow">Workflow</a>
+    </div>
+
+    <div class="footer-col">
+      <h3 class="footer-head mono">Features</h3>
+      <a href="#enhancement">Image Processing</a>
+      <a href="#cloud">Cloud Storage</a>
+      <a href="#privacy">Privacy &amp; Security</a>
+      <a href="#stack">The Stack</a>
+    </div>
+
+<div class="footer-col">
+  <h3 class="footer-head mono">Contact</h3>
+  <a href="https://github.com/TheKubics-org/Scanly" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
+  <a href="https://thekubics.space/" target="_blank" rel="noopener noreferrer">TheKubics Studio</a>
+  <a href="mailto:thekubics.dev@gmail.com">thekubics.dev@gmail.com</a>
+  <span class="footer-loc mono">Remote &bull; Worldwide</span>
+</div>
+
+<div class="footer-bottom">
+  <span class="footer-copy mono">&copy; 2026 TheKubics. All rights reserved.</span>
+  <div class="footer-legal mono">
+    <a href="./privacy.html">Privacy</a>
+    <a href="./terms.html">Terms</a>
+    <a href="https://github.com/TheKubics-org/Scanly/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Licence</a>
+    <a href="https://github.com/TheKubics-org/Scanly/security/policy" target="_blank" rel="noopener noreferrer">Security</a>
+    <a href="https://github.com/TheKubics-org/Scanly" target="_blank" rel="noopener noreferrer">Source</a>
+  </div>
+  <div class="footer-theme" role="radiogroup" aria-label="Color Theme">
+    <button class="theme-btn mono" data-theme="system" aria-pressed="false">System</button>
+    <button class="theme-btn mono" data-theme="light" aria-pressed="false">Light</button>
+    <button class="theme-btn mono active" data-theme="dark" aria-pressed="true">Dark</button>
+  </div>
+</div>
+</div>
+<span class="footer-wordmark" aria-hidden="true">scan<i>ly</i></span>
+</footer>
+
+</body>
+</html>

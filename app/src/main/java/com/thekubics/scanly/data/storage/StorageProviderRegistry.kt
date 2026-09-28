@@ -1,0 +1,21 @@
+package com.thekubics.scanly.data.storage
+
+import com.thekubics.scanly.data.storage.drive.GoogleDriveStorageProvider
+import com.thekubics.scanly.data.storage.s3.S3StorageProvider
+import com.thekubics.scanly.data.storage.telegram.TelegramStorageProvider
+import okhttp3.OkHttpClient
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class StorageProviderRegistry @Inject constructor(
+    private val okHttpClient: OkHttpClient
+) {
+    fun createProvider(config: StorageConfig): StorageProvider {
+        return when (config) {
+            is StorageConfig.Telegram -> TelegramStorageProvider(config)
+            is StorageConfig.CloudflareR2 -> S3StorageProvider(config, okHttpClient)
+            is StorageConfig.GoogleDrive -> GoogleDriveStorageProvider(config, okHttpClient)
+        }
+    }
+}

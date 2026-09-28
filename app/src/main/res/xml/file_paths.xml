@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Internal app storage for documents -->
+    <files-path name="documents" path="documents/" />
+
+    <!-- Internal app storage for thumbnails -->
+    <files-path name="thumbnails" path="thumbnails/" />
+
+    <!-- Dedicated cache directory for PDF exports -->
+    <cache-path name="pdf_exports" path="pdf_exports/" />
+
+    <!-- Temp directory for scanner output -->
+    <cache-path name="temp" path="temp/" />
+</paths>

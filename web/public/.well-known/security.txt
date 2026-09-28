@@ -1,0 +1,10 @@
+Contact: https://github.com/TheKubics-org/Scanly/security/advisories/new
+Contact: mailto:thekubics.dev@gmail.com
+Expires: 2027-09-27T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://scanly.thekubics.space/.well-known/security.txt
+Policy: https://github.com/TheKubics-org/Scanly/security/policy
+
+# Project: Scanly — open-source document scanner for Android (TheKubics)
+# Reporting a vulnerability in the app, the website, or the build pipeline is
+# welcome. Please report privately rather than opening a public issue.

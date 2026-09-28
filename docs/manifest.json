@@ -1,0 +1,47 @@
+{
+  "name": "Scanly — Open Source Document Scanner",
+  "short_name": "Scanly",
+  "description": "Open-source document scanner for Android. Capture, enhance, compose and export documents, with bring-your-own cloud storage.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "business"],
+  "icons": [
+    {
+      "src": "/icons/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Download Scanly",
+      "short_name": "Download",
+      "url": "https://github.com/TheKubics-org/Scanly/releases/latest"
+    },
+    {
+      "name": "Source on GitHub",
+      "short_name": "GitHub",
+      "url": "https://github.com/TheKubics-org/Scanly"
+    }
+  ]
+}

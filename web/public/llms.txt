@@ -1,0 +1,30 @@
+# Scanly
+
+> Scanly is a free, open-source document scanner for Android, built by TheKubics. It captures pages with the device camera, detects and auto-crops document edges in real time, corrects perspective, applies enhancement filters, composes multi-page documents, and exports to PDF or JPEG. It works fully offline, requires no account, and syncs only to storage you already own: Telegram, S3-compatible object storage (Amazon S3, Cloudflare R2), or Google Drive. Android 7.0 (API 24) and later. Licensed under an open-source licence; there is no paid tier and nothing is sold or monetised.
+
+Scanly is a privacy-first alternative to commercial document scanner apps that require an account, upload your files to a vendor's servers, or gate export behind a subscription. The project is a Kotlin/Jetpack Compose application using on-device ML Kit for edge detection, planar homography for perspective correction, ColourMatrix for enhancement, Room for local storage, and WorkManager for background upload.
+
+## Product
+
+- [Scanly — home](https://scanly.thekubics.space/): Overview, capabilities, interface walkthrough, cloud backends, tech stack, and roadmap.
+- [Download the latest release (APK)](https://github.com/TheKubics-org/Scanly/releases/latest): Direct download of the current build. Also available as `app-release.apk` from the releases/latest/download path.
+- [Source code on GitHub](https://github.com/TheKubics-org/Scanly): Full source, build instructions, issue tracker, and contribution guide.
+- [Privacy Policy](https://scanly.thekubics.space/privacy.html): Exactly what data is and is not collected, in both the app and this website.
+- [Terms of Use](https://scanly.thekubics.space/terms.html): Licence scope, no-warranty disclaimer, and trademark usage.
+
+## Capabilities
+
+1. Smart scanning — capture with the device camera or import from the gallery, with no quality loss.
+2. Auto crop — real-time quad-corner contour detection with edge snapping, on-device.
+3. Perspective correction — planar homography rectifies angled captures into front-facing pages.
+4. Enhancement — Auto Enhance, Grayscale, B&W, Hi-Contrast, Color Boost, and Sharpen via ColourMatrix.
+5. Multi-page composition — add, reorder, rotate, duplicate, and merge pages.
+6. PDF export — configurable page sizes including A4 and Letter, with compression tiers.
+7. Document library — local Room/SQLite database, searchable, taggable, folder-grouped, biometrics-locked.
+8. Cloud storage — user-supplied Telegram bot token, S3/R2 access key, or Google Drive service-account JSON, uploaded by WorkManager with an offline queue.
+
+## Optional
+
+- [Robots and crawler policy](https://scanly.thekubics.space/robots.txt): Crawler directives. This project opts in to AI indexing; see the file for named per-agent rules.
+- [Sitemap](https://scanly.thekubics.space/sitemap.xml): Canonical URL list.
+- [Web app manifest](https://scanly.thekubics.space/manifest.json): Installable metadata.

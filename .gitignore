@@ -1,0 +1,37 @@
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+app/build/
+app/.cxx/
+app/.externalNativeBuild/
+.agents/
+ORIGINAL_REQUEST.md
+PROJECT.md
+*.apk
+*.aab
+*.keystore
+*.jks
+keystore.properties
+push_to_github.bat
+*.ps1
+
+# Web & GitHub Pages source
+web/node_modules/
+web/.vite/
+web/dist/
+
+.kotlin/
+
+# Project documentation (session-generated knowledge base)
+Project/
+
+# Local security-scanner working files (not part of the project)
+findings.db
+scope.yaml
+results/

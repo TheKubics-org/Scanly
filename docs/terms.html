@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Use — Scanly | TheKubics</title>
+  <meta name="description" content="Terms of Use for the Scanly open-source document scanner and this website. Covering the open-source licence, the no-warranty disclaimer, and acceptable use." />
+  <meta name="author" content="TheKubics" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://scanly.thekubics.space/terms.html" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Scanly by TheKubics" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Terms of Use — Scanly | TheKubics" />
+  <meta property="og:description" content="Terms of Use for the Scanly open-source document scanner and this website." />
+  <meta property="og:url" content="https://scanly.thekubics.space/terms.html" />
+  <meta property="og:image" content="https://scanly.thekubics.space/images/og-card.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Terms of Use — Scanly | TheKubics" />
+  <meta name="twitter:description" content="Terms of Use for the Scanly open-source document scanner and this website." />
+  <meta name="twitter:image" content="https://scanly.thekubics.space/images/og-card.jpg" />
+
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+  <link rel="preload" href="/fonts/manrope-var.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/fonts.css" />
+  <style>
+    :root {
+      --bg: #090b0e;
+      --card-bg: #111419;
+      --card-border: #1e232b;
+      --text-main: #f0f3f6;
+      --text-muted: #9aa4b0;
+      --accent: #38bdf8;
+      --green: #34d399;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 64px 24px 96px; }
+    .back {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--text-muted); text-decoration: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+      margin-bottom: 40px; transition: color 0.2s;
+    }
+    .back:hover { color: var(--accent); }
+    h1 {
+      font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 12px;
+    }
+    .sub { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 8px; }
+    .updated {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+      color: var(--text-muted); letter-spacing: 0.05em;
+      padding-bottom: 28px; border-bottom: 1px solid var(--card-border); margin-bottom: 36px;
+    }
+    h2 {
+      font-size: 1.2rem; font-weight: 700; margin: 40px 0 12px;
+      scroll-margin-top: 24px;
+    }
+    h3 { font-size: 1rem; font-weight: 700; margin: 24px 0 8px; }
+    p, li { color: #c8d0da; font-size: 0.95rem; }
+    p { margin-bottom: 14px; }
+    ul, ol { margin: 0 0 16px 22px; }
+    li { margin-bottom: 8px; }
+    a { color: var(--accent); }
+    code {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.85em;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      padding: 1px 6px; border-radius: 4px;
+    }
+    .callout {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px; padding: 18px 20px; margin: 20px 0;
+    }
+    .callout p:last-child { margin-bottom: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0 24px; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--card-border); vertical-align: top; }
+    th { color: var(--text-main); font-weight: 700; }
+    td { color: #c8d0da; }
+    footer {
+      margin-top: 64px; padding-top: 28px;
+      border-top: 1px solid var(--card-border);
+      display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted);
+    }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+    @media (max-width: 600px) { .wrap { padding: 40px 18px 64px; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">&larr; Back to Scanly</a>
+
+    <h1>Terms of Use</h1>
+    <p class="sub">Scanly and scanly.thekubics.space</p>
+    <p class="updated">Last updated: 27 September 2026</p>
+
+    <p>
+      These terms cover your use of the Scanly Android application and of this website
+      (the &ldquo;Site&rdquo;), both operated by TheKubics. By downloading Scanly or using
+      the Site you agree to them. If you do not agree, do not use either.
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>Scanly is free and open source.</strong> There is no paid tier, no
+        subscription, and nothing to cancel. Consequently there is no refund policy:
+        no payment is ever taken, so there is nothing to refund. Any feature request
+        for a paid service would come with its own terms published at that time.
+      </p>
+    </div>
+
+    <h2>1. Licence</h2>
+    <p>
+      Scanly is released under an open-source licence. The licence file in the repository
+      is the authoritative statement of your rights to use, modify and redistribute the
+      software, and those terms govern the code. Nothing in these terms narrows the
+      rights the licence grants you.
+    </p>
+    <p>
+      This Site &mdash; its written copy, layout, CSS, JavaScript and the Scanly name and
+      logo &mdash; is <em>not</em> covered by that open-source licence. It is provided
+      for viewing. See section 7 for what you may do with it.
+    </p>
+
+    <h2>2. No warranty</h2>
+    <p>
+      Scanly and the Site are provided &ldquo;as is&rdquo;, without warranty of any kind,
+      express or implied, including but not limited to the warranties of merchantability,
+      fitness for a particular purpose and non-infringement.
+    </p>
+    <p>
+      Document scanning involves optical recognition. Scanly may misread, skew, crop or
+      omit content. <strong>Always keep the original paper.</strong> Verify any scanned
+      document before relying on it for legal, financial, medical or other consequential
+      purposes. We are not liable for loss of data, lost documents, or any indirect or
+      consequential damages arising from your use of Scanly or the Site, to the fullest
+      extent permitted by law.
+    </p>
+
+    <h2>3. Your responsibilities</h2>
+    <p>You agree that you will not:</p>
+    <ul>
+      <li>use Scanly or the Site in breach of any applicable law, or to process documents you have no right to process;</li>
+      <li>store cloud credentials for accounts you do not own, or attempt to access another person&rsquo;s files;</li>
+      <li>reverse engineer, tamper with, or redistribute a modified build of Scanly under the Scanly name or logo (see section 7);</li>
+      <li>scrape, overload, or interfere with the Site&rsquo;s operation;</li>
+      <li>misrepresent your affiliation with TheKubics.</li>
+    </ul>
+
+    <h2>4. Your data stays yours</h2>
+    <p>
+      Scanly works offline and requires no account. Files you scan remain on your device
+      unless you explicitly configure a cloud destination. When you do configure one, you
+      supply your own credentials and files are sent to the storage provider you chose
+      &mdash; Telegram, your own S3/R2 bucket, or your own Google Drive account &mdash;
+      under that provider&rsquo;s terms, not ours. We operate no servers that receive
+      your documents.
+    </p>
+    <p>
+      The Site sets no cookies and runs no analytics or advertising trackers. Your theme
+      choice is stored in your browser&rsquo;s <code>localStorage</code> and never leaves
+      your device. Full detail is in the <a href="/privacy.html">Privacy Policy</a>.
+    </p>
+
+    <h2>5. Third-party services</h2>
+    <p>
+      Links on the Site to GitHub, TheKubics, and the cloud providers above are provided
+      for convenience. We do not control those services and are not responsible for their
+      content, availability, or practices. Your use of them is governed by their own terms.
+      Provider names and logos are the property of their respective owners and are used
+      here to identify compatibility only &mdash; see section 7.
+    </p>
+
+    <h2>6. Availability and changes</h2>
+    <p>
+      We may modify, suspend, or discontinue any part of Scanly or the Site at any time
+      without notice. We may update these terms; the &ldquo;last updated&rdquo; date above
+      reflects the current version, and continued use after a change constitutes acceptance.
+    </p>
+
+    <h2>7. Intellectual property</h2>
+    <p>
+      &ldquo;Scanly&rdquo;, the Scanly logo and wordmark, and &ldquo;TheKubics&rdquo; and
+      its logo are trademarks of TheKubics. You may use them to refer to the project
+      factually &mdash; for example, to link to this Site or to credit the work &mdash;
+      but not in a way that suggests sponsorship, endorsement, or official affiliation,
+      and not in a modified form that could cause confusion.
+    </p>
+    <p>
+      The Telegram, Cloudflare and Google Drive names and logos are trademarks of their
+      respective owners. They appear on this Site to state which storage backends Scanly
+      interoperates with. We are not affiliated with, endorsed by, or sponsored by any of
+      them.
+    </p>
+
+    <h2>8. Termination</h2>
+    <p>
+      These terms apply while you use Scanly or the Site. If you breach them, we may
+      restrict your access to the Site. Sections that by their nature should survive
+      termination &mdash; including no-warranty, liability limits, and intellectual
+      property &mdash; do survive it.
+    </p>
+
+    <h2>9. Governing law</h2>
+    <p>
+      These terms are governed by the laws applicable at TheKubics&rsquo; place of
+      establishment, without regard to conflict-of-law rules. Nothing here removes rights
+      you have under the mandatory consumer law of your country of residence.
+    </p>
+
+    <h2>10. Contact</h2>
+    <p>
+      Questions about these terms: <a href="mailto:thekubics.dev@gmail.com">thekubics.dev@gmail.com</a>,
+      or via the project&rsquo;s
+      <a href="https://github.com/TheKubics-org/Scanly" target="_blank" rel="noopener noreferrer">issue tracker</a>.
+    </p>
+
+    <footer>
+      <span>&copy; 2026 TheKubics</span>
+      <a href="/">Home</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="https://github.com/TheKubics-org/Scanly" target="_blank" rel="noopener noreferrer">Source</a>
+    </footer>
+  </div>
+</body>
+</html>
