@@ -20,6 +20,7 @@ data class DocumentEntity(
     val folderId: String?,
     val pageCount: Int,
     val thumbnailPath: String,
+    val pdfPath: String?,
     val ocrText: String?,
     val isEncrypted: Boolean,
     val isTrashed: Boolean,

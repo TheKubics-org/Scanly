@@ -30,9 +30,9 @@ import androidx.fragment.app.FragmentActivity
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @Suppress("DEPRECATION")
 @Composable
@@ -50,11 +50,19 @@ fun AppLockGate(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Re-lock app when sent to background (ON_STOP)
+    // Re-lock only after backgrounding for ~45s so share sheets / brief exits don't thrash.
     DisposableEffect(lifecycleOwner) {
+        var stoppedAt = 0L
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) {
-                isAuthenticated = false
+            when (event) {
+                Lifecycle.Event.ON_STOP -> stoppedAt = System.currentTimeMillis()
+                Lifecycle.Event.ON_START -> {
+                    if (stoppedAt > 0L && System.currentTimeMillis() - stoppedAt > 45_000L) {
+                        isAuthenticated = false
+                    }
+                    stoppedAt = 0L
+                }
+                else -> Unit
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

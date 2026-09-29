@@ -1,5 +1,6 @@
 package com.thekubics.scanly.presentation.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,16 +23,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import com.thekubics.scanly.R
+import com.thekubics.scanly.domain.model.DateFilter
 import com.thekubics.scanly.domain.model.Document
 import com.thekubics.scanly.domain.model.Folder
 import com.thekubics.scanly.presentation.common.ConfirmationDialog
+import com.thekubics.scanly.presentation.common.DateFilterChips
 import com.thekubics.scanly.presentation.common.EmptyState
 import com.thekubics.scanly.presentation.common.TheKubicsTopBarLogo
+import com.thekubics.scanly.presentation.common.shimmer
 import com.thekubics.scanly.util.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +52,7 @@ fun HomeScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val viewType by viewModel.viewType.collectAsState()
     val sortOrder by viewModel.sortOrder.collectAsState()
+    val dateFilter by viewModel.dateFilter.collectAsState()
 
     var isSearchExpanded by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
@@ -55,19 +62,32 @@ fun HomeScreen(
     var docToMove by remember { mutableStateOf<Document?>(null) }
     var docToTrash by remember { mutableStateOf<Document?>(null) }
 
+    val importLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            viewModel.importFiles(
+                uris = uris.map { it.toString() },
+                title = "Imported ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date())}"
+            ) { docId ->
+                if (docId != null) onNavigateToViewer(docId)
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .height(48.dp)
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
+                Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
                 Row(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 8.dp),
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isSearchExpanded) {
@@ -77,9 +97,10 @@ fun HomeScreen(
                             placeholder = { Text(stringResource(R.string.home_search_hint)) },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(44.dp),
+                                .height(48.dp),
                             singleLine = true,
-                            shape = RoundedCornerShape(22.dp),
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                            shape = RoundedCornerShape(20.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -87,7 +108,11 @@ fun HomeScreen(
                                 unfocusedBorderColor = Color.Transparent
                             ),
                             leadingIcon = {
-                                Icon(Icons.Default.Search, contentDescription = null)
+                                Icon(
+                                    Icons.Default.Search,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             },
                             trailingIcon = {
                                 if (searchQuery.isNotEmpty()) {
@@ -95,20 +120,35 @@ fun HomeScreen(
                                         Icon(
                                             Icons.Default.Clear,
                                             contentDescription = "Clear search",
-                                            modifier = Modifier.size(20.dp)
+                                            modifier = Modifier.size(18.dp)
                                         )
                                     }
                                 }
                             }
                         )
                     } else {
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.titleMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.app_logo),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(id = R.string.app_name),
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                     IconButton(
                         onClick = {
@@ -179,60 +219,90 @@ fun HomeScreen(
             }
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onNavigateToScanner,
-                icon = { Icon(Icons.Filled.DocumentScanner, contentDescription = stringResource(R.string.cd_scan_button)) },
-                text = { Text(stringResource(R.string.nav_scan)) },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            Column(
+                modifier = Modifier
+                    .padding(bottom = 16.dp, end = 16.dp),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FloatingActionButton(
+                    onClick = {
+                        importLauncher.launch(arrayOf(
+                            "application/pdf",
+                            "image/png",
+                            "image/jpeg",
+                            "image/jpg"
+                        ))
+                    },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                ) {
+                    Icon(Icons.Outlined.UploadFile, contentDescription = "Import PDF or image")
+                }
+                ExtendedFloatingActionButton(
+                    onClick = onNavigateToScanner,
+                    icon = { Icon(Icons.Filled.DocumentScanner, contentDescription = stringResource(R.string.cd_scan_button)) },
+                    text = { Text(stringResource(R.string.nav_scan)) },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
         }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            if (documents.isEmpty()) {
-                val isFilterActive = searchQuery.isNotBlank()
-                EmptyState(
-                    icon = if (isFilterActive) Icons.Outlined.SearchOff else Icons.Filled.DocumentScanner,
-                    title = if (isFilterActive) "No matching documents" else stringResource(R.string.home_empty_title),
-                    subtitle = if (isFilterActive) "No documents match \"$searchQuery\"" else stringResource(R.string.home_empty_subtitle),
-                    actionLabel = if (isFilterActive) null else stringResource(R.string.nav_scan),
-                    onAction = if (isFilterActive) null else onNavigateToScanner
+            if (isSearchExpanded) {
+                DateFilterChips(
+                    selected = dateFilter,
+                    onSelect = viewModel::setDateFilter,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
                 )
-            } else {
-                if (viewType == ViewType.GRID) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 160.dp),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(documents, key = { it.id }) { doc ->
-                            DocumentCard(
-                                document = doc,
-                                onClick = { onNavigateToViewer(doc.id) },
-                                onRename = { docToRename = doc },
-                                onMoveToFolder = { docToMove = doc },
-                                onMoveToTrash = { docToTrash = doc }
-                            )
-                        }
-                    }
+            }
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (documents.isEmpty()) {
+                    val isFilterActive = searchQuery.isNotBlank() || dateFilter != DateFilter.ALL
+                    EmptyState(
+                        icon = if (isFilterActive) Icons.Outlined.SearchOff else Icons.Outlined.Description,
+                        title = if (isFilterActive) "No matching documents" else stringResource(R.string.home_empty_title),
+                        subtitle = if (isFilterActive) "No documents match \"$searchQuery\"" else stringResource(R.string.home_empty_subtitle),
+                        actionLabel = if (isFilterActive) null else stringResource(R.string.nav_scan),
+                        onAction = if (isFilterActive) null else onNavigateToScanner
+                    )
                 } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(documents, key = { it.id }) { doc ->
-                            DocumentListCard(
-                                document = doc,
-                                onClick = { onNavigateToViewer(doc.id) },
-                                onRename = { docToRename = doc },
-                                onMoveToFolder = { docToMove = doc },
-                                onMoveToTrash = { docToTrash = doc }
-                            )
+                    if (viewType == ViewType.GRID) {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minSize = 160.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(documents, key = { it.id }) { doc ->
+                                DocumentCard(
+                                    document = doc,
+                                    onClick = { onNavigateToViewer(doc.id) },
+                                    onRename = { docToRename = doc },
+                                    onMoveToFolder = { docToMove = doc },
+                                    onMoveToTrash = { docToTrash = doc }
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(documents, key = { it.id }) { doc ->
+                                DocumentListCard(
+                                    document = doc,
+                                    onClick = { onNavigateToViewer(doc.id) },
+                                    onRename = { docToRename = doc },
+                                    onMoveToFolder = { docToMove = doc },
+                                    onMoveToTrash = { docToTrash = doc }
+                                )
+                            }
                         }
                     }
                 }
@@ -309,11 +379,24 @@ fun DocumentCard(
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
                 if (document.thumbnailPath.isNotBlank()) {
-                    AsyncImage(
+                    SubcomposeAsyncImage(
                         model = java.io.File(document.thumbnailPath),
                         contentDescription = stringResource(R.string.cd_document_thumbnail),
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(modifier = Modifier.fillMaxSize().shimmer())
+                        },
+                        error = {
+                            Icon(
+                                imageVector = Icons.Outlined.Description,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .align(Alignment.Center),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
                     )
                 } else {
                     Icon(
@@ -324,27 +407,6 @@ fun DocumentCard(
                             .align(Alignment.Center),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
-                }
-
-                // Encryption badge
-                if (document.isEncrypted) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .align(Alignment.TopStart)
-                            .size(28.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Lock,
-                            contentDescription = "Encrypted",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier
-                                .padding(5.dp)
-                                .fillMaxSize()
-                        )
-                    }
                 }
 
                 // Page count pill
@@ -482,11 +544,24 @@ fun DocumentListCard(
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
                 if (document.thumbnailPath.isNotBlank()) {
-                    AsyncImage(
+                    SubcomposeAsyncImage(
                         model = java.io.File(document.thumbnailPath),
                         contentDescription = stringResource(R.string.cd_document_thumbnail),
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(modifier = Modifier.fillMaxSize().shimmer())
+                        },
+                        error = {
+                            Icon(
+                                imageVector = Icons.Outlined.Description,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .align(Alignment.Center),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
                     )
                 } else {
                     Icon(
@@ -499,23 +574,6 @@ fun DocumentListCard(
                     )
                 }
 
-                if (document.isEncrypted) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .align(Alignment.TopStart)
-                            .size(18.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Lock,
-                            contentDescription = "Encrypted",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(3.dp)
-                        )
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))

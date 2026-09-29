@@ -99,8 +99,26 @@ class CloudSyncManager @Inject constructor(
         }
     }
 
+    /** Daily purge of trash older than retention. */
+    fun scheduleTrashMaintenance() {
+        val request = PeriodicWorkRequestBuilder<TrashMaintenanceWorker>(
+            repeatInterval = 1,
+            repeatIntervalTimeUnit = TimeUnit.DAYS
+        )
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.HOURS)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            TRASH_MAINTENANCE_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+        ScanlyLogger.syncInfo("Trash maintenance scheduled (daily)")
+    }
+
     companion object {
         private const val PERIODIC_SYNC_WORK_NAME = "scanly_periodic_cloud_sync"
         private const val ONE_TIME_SYNC_WORK_NAME = "scanly_immediate_cloud_sync"
+        private const val TRASH_MAINTENANCE_WORK_NAME = "scanly_trash_maintenance"
     }
 }

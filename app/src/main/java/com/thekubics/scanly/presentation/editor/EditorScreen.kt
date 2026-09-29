@@ -148,7 +148,7 @@ fun EditorScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
         },
@@ -158,8 +158,7 @@ fun EditorScreen(
                 color = MaterialTheme.colorScheme.surfaceContainer
             ) {
                 NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier.height(72.dp)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 ) {
                     EditorTab.values().forEach { tab ->
                         val isSelected = selectedTab == tab

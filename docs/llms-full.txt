@@ -5,7 +5,7 @@
 Canonical URL: https://scanly.thekubics.space/
 Source repository: https://github.com/TheKubics-org/Scanly
 Platform: Android 7.0 (API 24) and later
-Latest release referenced on this site: v1.1.0
+Latest release referenced on this site: v2.2.1
 Licence: open source (see repository LICENSE)
 
 ---

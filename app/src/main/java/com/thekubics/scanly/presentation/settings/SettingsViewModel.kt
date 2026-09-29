@@ -90,6 +90,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun completeOnboarding() {
+        viewModelScope.launch {
+            settingsRepository.updateSettings(settings.value.copy(hasSeenOnboarding = true))
+        }
+    }
+
     fun clearCache(context: Context) {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             context.cacheDir.listFiles()?.forEach { file ->

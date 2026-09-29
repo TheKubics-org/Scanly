@@ -80,7 +80,7 @@ fun StorageProvidersScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
@@ -517,9 +517,10 @@ private fun AddOrEditProviderDialog(
             ) {
                 if (existingConfig == null) {
                     Text("Select Provider Type", style = MaterialTheme.typography.labelLarge)
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         FilterChip(
                             selected = selectedType == StorageProviderType.TELEGRAM,
@@ -624,7 +625,11 @@ private fun AddOrEditProviderDialog(
                     }
 
                     StorageProviderType.GOOGLE_DRIVE -> {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.height(48.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             FilterChip(
                                 selected = driveAuthType == GoogleDriveAuthType.SERVICE_ACCOUNT,
                                 onClick = { driveAuthType = GoogleDriveAuthType.SERVICE_ACCOUNT },

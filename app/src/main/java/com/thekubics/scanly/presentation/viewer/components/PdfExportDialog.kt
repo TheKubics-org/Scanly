@@ -16,6 +16,7 @@ import com.thekubics.scanly.domain.model.MarginPreset
 import com.thekubics.scanly.domain.model.PageSize
 import com.thekubics.scanly.domain.model.PdfExportOptions
 import com.thekubics.scanly.domain.model.QualityLevel
+import com.thekubics.scanly.util.ExportFormat
 
 /**
  * Material 3 dialog for configuring PDF export settings.
@@ -24,14 +25,17 @@ import com.thekubics.scanly.domain.model.QualityLevel
 @Composable
 fun PdfExportDialog(
     initialTitle: String = "Scanned_Document",
-    onExport: (PdfExportOptions) -> Unit,
+    initialPageSize: PageSize = PageSize.AUTO,
+    initialMargin: MarginPreset = MarginPreset.NONE,
+    onExport: (PdfExportOptions, ExportFormat) -> Unit,
     onDismiss: () -> Unit,
     isExporting: Boolean = false
 ) {
     var documentTitle by remember { mutableStateOf(initialTitle) }
-    var selectedPageSize by remember { mutableStateOf(PageSize.A4) }
-    var selectedMargin by remember { mutableStateOf(MarginPreset.NORMAL) }
+    var selectedPageSize by remember { mutableStateOf(initialPageSize) }
+    var selectedMargin by remember { mutableStateOf(initialMargin) }
     var selectedQuality by remember { mutableStateOf(QualityLevel.HIGH) }
+    var selectedFormat by remember { mutableStateOf(ExportFormat.PDF) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -42,9 +46,9 @@ fun PdfExportDialog(
                 tint = MaterialTheme.colorScheme.primary
             )
         },
-        title = {
+                title = {
             Text(
-                text = "Export PDF",
+                text = "Export / Convert",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold
             )
@@ -56,7 +60,34 @@ fun PdfExportDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Format Selector
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "Format",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(
+                            ExportFormat.PDF to "PDF",
+                            ExportFormat.PNG to "PNG",
+                            ExportFormat.JPEG to "JPG"
+                        ).forEach { (format, label) ->
+                            FilterChip(
+                                selected = selectedFormat == format,
+                                onClick = { selectedFormat = format },
+                                label = { Text(label, style = MaterialTheme.typography.labelMedium) }
+                            )
+                        }
+                    }
+                }
+
                 // PDF Title Input
+
                 OutlinedTextField(
                     value = documentTitle,
                     onValueChange = { documentTitle = it },
@@ -107,9 +138,10 @@ fun PdfExportDialog(
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         listOf(
                             QualityLevel.HIGH to "High (95%)",
@@ -162,8 +194,9 @@ fun PdfExportDialog(
                             margin = selectedMargin,
                             quality = selectedQuality,
                             documentTitle = documentTitle.ifBlank { "Document" },
-                            author = "DocScanner"
-                        )
+                            author = "Scanly"
+                        ),
+                        selectedFormat
                     )
                 },
                 enabled = !isExporting
@@ -177,7 +210,12 @@ fun PdfExportDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Exporting...")
                 } else {
-                    Text("Export PDF")
+                    val label = when (selectedFormat) {
+                        ExportFormat.PNG  -> "Export PNG"
+                        ExportFormat.JPEG -> "Export JPG"
+                        else              -> "Export PDF"
+                    }
+                    Text(label)
                 }
             }
         },

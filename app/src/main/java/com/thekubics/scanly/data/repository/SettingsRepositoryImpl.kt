@@ -48,16 +48,16 @@ class SettingsRepositoryImpl @Inject constructor(
         } ?: FilterType.AUTO_ENHANCE
 
         val defaultPageSize = preferences[PreferencesKeys.DEFAULT_PAGE_SIZE]?.let { raw ->
-            runCatching { PageSize.valueOf(raw) }.getOrDefault(PageSize.A4)
-        } ?: PageSize.A4
+            runCatching { PageSize.valueOf(raw) }.getOrDefault(PageSize.AUTO)
+        } ?: PageSize.AUTO
 
         val defaultPdfQuality = preferences[PreferencesKeys.DEFAULT_PDF_QUALITY]?.let { raw ->
             runCatching { QualityLevel.valueOf(raw) }.getOrDefault(QualityLevel.HIGH)
         } ?: QualityLevel.HIGH
 
         val defaultMargin = preferences[PreferencesKeys.DEFAULT_MARGIN]?.let { raw ->
-            runCatching { MarginPreset.valueOf(raw) }.getOrDefault(MarginPreset.NORMAL)
-        } ?: MarginPreset.NORMAL
+            runCatching { MarginPreset.valueOf(raw) }.getOrDefault(MarginPreset.NONE)
+        } ?: MarginPreset.NONE
 
         val defaultSaveAction = preferences[PreferencesKeys.DEFAULT_SAVE_ACTION]?.let { raw ->
             runCatching { SaveAction.valueOf(raw) }.getOrDefault(SaveAction.SAVE_LOCAL)

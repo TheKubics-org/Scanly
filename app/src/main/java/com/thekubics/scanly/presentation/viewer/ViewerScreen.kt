@@ -28,7 +28,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import com.thekubics.scanly.domain.model.Page
+import com.thekubics.scanly.presentation.common.shimmer
 import com.thekubics.scanly.presentation.viewer.components.OcrResultSheet
 import com.thekubics.scanly.presentation.viewer.components.PdfExportDialog
 import com.thekubics.scanly.presentation.common.TheKubicsTopBarLogo
@@ -120,7 +122,7 @@ fun ViewerScreen(
                         )
 
                         DropdownMenuItem(
-                            text = { Text("Export & Share PDF") },
+                            text = { Text("Export / Convert") },
                             leadingIcon = {
                                 Icon(Icons.Outlined.PictureAsPdf, contentDescription = null)
                             },
@@ -155,7 +157,7 @@ fun ViewerScreen(
                     TheKubicsTopBarLogo()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
         }
@@ -288,9 +290,11 @@ fun ViewerScreen(
     if (showExportDialog) {
         PdfExportDialog(
             initialTitle = (document?.title ?: "Document").replace(" ", "_"),
-            onExport = { options ->
+            initialPageSize = viewModel.settings.value.defaultPageSize,
+            initialMargin = viewModel.settings.value.defaultMargin,
+            onExport = { options, format ->
                 showExportDialog = false
-                viewModel.exportPdf(context, options)
+                viewModel.exportDocument(context, options, format)
             },
             onDismiss = { showExportDialog = false }
         )
@@ -432,7 +436,7 @@ private fun ZoomablePageItem(page: Page) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        AsyncImage(
+        SubcomposeAsyncImage(
             model = java.io.File(page.processedImagePath.ifBlank { page.originalImagePath }),
             contentDescription = "Document Page ${page.pageNumber}",
             modifier = Modifier
@@ -444,7 +448,10 @@ private fun ZoomablePageItem(page: Page) {
                     translationY = offset.y
                     rotationZ = page.rotation.toFloat()
                 },
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.Fit,
+            loading = {
+                Box(modifier = Modifier.fillMaxSize().shimmer())
+            }
         )
     }
 }

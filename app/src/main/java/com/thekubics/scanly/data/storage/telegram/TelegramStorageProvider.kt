@@ -7,12 +7,14 @@ import com.thekubics.scanly.data.storage.StorageProvider
 import com.thekubics.scanly.data.storage.StorageProviderType
 import com.thekubics.scanly.data.storage.StorageTestResult
 import com.thekubics.scanly.data.storage.StorageUploadResult
+import com.thekubics.scanly.util.ScanlyLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -159,7 +161,8 @@ class TelegramStorageProvider(
         file: File,
         mimeType: String,
         remotePath: String,
-        progressCallback: ((bytesSent: Long, totalBytes: Long) -> Unit)?
+        progressCallback: ((bytesSent: Long, totalBytes: Long) -> Unit)?,
+        existingRemoteId: String?
     ): StorageUploadResult = withContext(Dispatchers.IO) {
         if (!file.exists()) {
             return@withContext StorageUploadResult(
@@ -174,6 +177,41 @@ class TelegramStorageProvider(
             val mediaType = (mimeType.ifBlank { "application/pdf" }).toMediaTypeOrNull()
             val fileBody = file.asRequestBody(mediaType)
             val fileName = if (remotePath.contains("/")) remotePath.substringAfterLast("/") else remotePath
+
+            // sendDocument is create-only: every call posts a brand new message, so
+            // re-uploading a document we already backed up left duplicate messages in
+            // the chat. When we know the previous message id, replace the media of that
+            // message in place instead.
+            val knownMessageId = existingRemoteId
+                ?.trim()
+                ?.substringBefore('|')
+                ?.toLongOrNull()
+            if (knownMessageId != null) {
+                val replaceResult = replaceMessageMedia(
+                    client = uploadClient,
+                    messageId = knownMessageId,
+                    fileName = fileName,
+                    fileBody = fileBody
+                )
+                if (replaceResult != null) {
+                    // editMessageMedia does not return file_id; keep the previous one if we have it.
+                    val priorFileId = existingRemoteId
+                        .substringAfter('|', missingDelimiterValue = "")
+                        .takeIf { it.isNotBlank() }
+                    val mergedId = if (priorFileId != null) {
+                        "$knownMessageId|$priorFileId"
+                    } else {
+                        replaceResult.remoteId ?: knownMessageId.toString()
+                    }
+                    return@withContext replaceResult.copy(remoteId = mergedId)
+                }
+                // Replacement failed (message deleted, bot lost rights, payload too
+                // large for editMessageMedia) — fall through and send a new message
+                // so the document is never silently left un-backed-up.
+                ScanlyLogger.cloudWarn(
+                    "TELEGRAM_EDIT_FALLBACK msg=$knownMessageId — sending a new message instead"
+                )
+            }
 
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
@@ -201,9 +239,12 @@ class TelegramStorageProvider(
                     ?.toString(Charsets.UTF_8) ?: ""
                 if (response.isSuccessful && body.contains("\"ok\":true")) {
                     val messageId = extractJsonLong(body, "message_id") ?: System.currentTimeMillis()
+                    // Prefer document.file_id so restore can fetch via getFile.
+                    val fileId = extractNestedFileId(body)
+                    val remoteId = if (fileId != null) "$messageId|$fileId" else messageId.toString()
                     StorageUploadResult(
                         isSuccess = true,
-                        remoteId = messageId.toString(),
+                        remoteId = remoteId,
                         remoteUrl = "tg://msg?chat=$cleanChatId&id=$messageId",
                         bytesUploaded = file.length()
                     )
@@ -224,22 +265,152 @@ class TelegramStorageProvider(
         }
     }
 
+    /**
+     * Replaces the document attached to an existing backup message via
+     * `editMessageMedia`, so a re-upload updates the message in place instead of
+     * posting a second copy of the same document to the chat.
+     *
+     * Telegram caps `editMessageMedia` payloads (50 MB, and 10 MB for bots in some
+     * regions); oversized or otherwise rejected edits return null so the caller can
+     * fall back to sending a fresh message rather than dropping the backup.
+     *
+     * @return a successful [StorageUploadResult] on success, or null to signal
+     *   "could not replace — send a new message instead".
+     */
+    private suspend fun replaceMessageMedia(
+        client: OkHttpClient,
+        messageId: Long,
+        fileName: String,
+        fileBody: RequestBody
+    ): StorageUploadResult? {
+        // InputMediaDocument: type + media as attach://<part_name> matching the multipart file part.
+        val mediaJson = buildString {
+            append("""{"type":"document","media":"attach://scanly_replacement",""")
+            append(""""caption":"📄 Scanly Backup: $fileName"}""")
+        }
+
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("chat_id", cleanChatId)
+            .addFormDataPart("message_id", messageId.toString())
+            .addFormDataPart("media", mediaJson)
+            .addFormDataPart("scanly_replacement", fileName, fileBody)
+            .build()
+
+        val request = Request.Builder()
+            .url("$baseUrl/editMessageMedia")
+            .header("Connection", "close")
+            .post(requestBody)
+            .build()
+
+        return client.newCall(request).execute().use { response ->
+            val body = response.body?.byteStream()?.readNBytes(MAX_RESPONSE_BYTES.toInt())
+                ?.toString(Charsets.UTF_8) ?: ""
+            if (response.isSuccessful && body.contains("\"ok\":true")) {
+                StorageUploadResult(
+                    isSuccess = true,
+                    remoteId = messageId.toString(),
+                    remoteUrl = "tg://msg?chat=$cleanChatId&id=$messageId",
+                    bytesUploaded = -1L
+                )
+            } else {
+                ScanlyLogger.cloudWarn(
+                    "TELEGRAM_EDIT_REJECTED msg=$messageId: ${extractErrorDescription(body) ?: "HTTP ${response.code}"}"
+                )
+                null
+            }
+        }
+    }
+
     override suspend fun downloadFile(
         remotePath: String,
         targetFile: File,
         progressCallback: ((bytesDownloaded: Long, totalBytes: Long) -> Unit)?
-    ): StorageDownloadResult {
-        // Telegram only stores a message_id; there is no retainable file reference,
-        // so downloading back is not supported. Reported honestly instead of faking it.
-        return StorageDownloadResult(
-            isSuccess = false,
-            errorMessage = "Downloading back from Telegram is not supported: the bot keeps only message IDs, not file references. Keep a local copy of documents synced to Telegram."
-        )
+    ): StorageDownloadResult = withContext(Dispatchers.IO) {
+        val fileId = remotePath.substringAfter('|', missingDelimiterValue = "")
+            .takeIf { it.isNotBlank() && remotePath.contains('|') }
+        if (fileId.isNullOrBlank()) {
+            return@withContext StorageDownloadResult(
+                isSuccess = false,
+                errorMessage = "This Telegram backup has no file reference (uploaded before restore support). Re-upload the document once to enable download."
+            )
+        }
+
+        try {
+            val getFileReq = Request.Builder()
+                .url("$baseUrl/getFile?file_id=$fileId")
+                .header("Connection", "close")
+                .get()
+                .build()
+
+            val filePath = baseClient.newCall(getFileReq).execute().use { response ->
+                val body = response.body?.byteStream()?.readNBytes(MAX_RESPONSE_BYTES.toInt())
+                    ?.toString(Charsets.UTF_8) ?: ""
+                if (!response.isSuccessful || !body.contains("\"ok\":true")) {
+                    val desc = extractErrorDescription(body) ?: "HTTP ${response.code}"
+                    return@withContext StorageDownloadResult(
+                        isSuccess = false,
+                        errorMessage = "Telegram getFile failed: $desc"
+                    )
+                }
+                extractJsonString(body, "file_path")
+                    ?: return@withContext StorageDownloadResult(
+                        isSuccess = false,
+                        errorMessage = "Telegram getFile returned no file_path"
+                    )
+            }
+
+            val downloadUrl = "https://api.telegram.org/file/bot${config.botToken}/$filePath"
+            val downloadReq = Request.Builder()
+                .url(downloadUrl)
+                .header("Connection", "close")
+                .get()
+                .build()
+
+            baseClient.newCall(downloadReq).execute().use { response ->
+                if (!response.isSuccessful) {
+                    return@withContext StorageDownloadResult(
+                        isSuccess = false,
+                        errorMessage = "Telegram file download failed: HTTP ${response.code}"
+                    )
+                }
+                val body = response.body
+                    ?: return@withContext StorageDownloadResult(
+                        isSuccess = false,
+                        errorMessage = "Telegram file download returned empty body"
+                    )
+                val total = body.contentLength().coerceAtLeast(0L)
+                targetFile.parentFile?.mkdirs()
+                var written = 0L
+                body.byteStream().use { input ->
+                    targetFile.outputStream().use { output ->
+                        val buffer = ByteArray(8192)
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read <= 0) break
+                            output.write(buffer, 0, read)
+                            written += read
+                            if (total > 0) progressCallback?.invoke(written, total)
+                        }
+                    }
+                }
+                StorageDownloadResult(
+                    isSuccess = true,
+                    localFile = targetFile,
+                    bytesDownloaded = written
+                )
+            }
+        } catch (e: Exception) {
+            StorageDownloadResult(
+                isSuccess = false,
+                errorMessage = e.message ?: "Telegram download failed"
+            )
+        }
     }
 
     override suspend fun deleteFile(remotePath: String): Boolean = withContext(Dispatchers.IO) {
         try {
-            val messageId = remotePath.toLongOrNull() ?: return@withContext false
+            val messageId = remotePath.substringBefore('|').toLongOrNull() ?: return@withContext false
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("chat_id", cleanChatId)
@@ -291,6 +462,14 @@ class TelegramStorageProvider(
         val pattern = Pattern.compile("\"$key\"\\s*:\\s*(\\d+)")
         val matcher = pattern.matcher(json)
         return if (matcher.find()) matcher.group(1)?.toLongOrNull() else null
+    }
+
+    /** Pulls document.file_id from a sendDocument / editMessageMedia response body. */
+    private fun extractNestedFileId(json: String): String? {
+        val docIdx = json.indexOf("\"document\"")
+        if (docIdx < 0) return null
+        val slice = json.substring(docIdx, minOf(json.length, docIdx + 800))
+        return extractJsonString(slice, "file_id")
     }
 
     companion object {

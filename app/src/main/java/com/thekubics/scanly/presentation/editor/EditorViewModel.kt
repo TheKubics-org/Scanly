@@ -4,10 +4,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thekubics.scanly.domain.model.Document
+import com.thekubics.scanly.domain.model.BackupPolicy
 import com.thekubics.scanly.domain.model.FilterType
 import com.thekubics.scanly.domain.model.Page
 import com.thekubics.scanly.domain.model.SaveAction
@@ -109,19 +112,25 @@ class EditorViewModel @Inject constructor(
 
         viewModelScope.launch {
             combine(
-                _pages,
-                _selectedPageIndex,
-                _currentFilter,
-                _brightness,
-                _contrast
-            ) { pagesList, index, filter, brightness, contrast ->
-                EditorPreviewState(pagesList, index, filter, brightness, contrast)
+                combine(
+                    _pages,
+                    _selectedPageIndex,
+                    _currentFilter,
+                    _brightness,
+                    _contrast
+                ) { pagesList, index, filter, brightness, contrast ->
+                    EditorPreviewState(pagesList, index, filter, brightness, contrast, 0)
+                },
+                _rotation
+            ) { state, rotation ->
+                state.copy(rotation = rotation)
             }.collectLatest { state ->
                 val pagesList = state.pagesList
                 val index = state.index
                 val filter = state.filter
                 val brightness = state.brightness
                 val contrast = state.contrast
+                val rotationDegrees = state.rotation
 
                 val currentPage = pagesList.getOrNull(index)
                 if (currentPage != null && currentPage.originalImagePath.isNotBlank() && java.io.File(currentPage.originalImagePath).exists()) {
@@ -129,34 +138,55 @@ class EditorViewModel @Inject constructor(
                         val adjusted = withContext(Dispatchers.Default) {
                             runCatching {
                                 if (originalPreviewBitmap == null || lastLoadedPageIndex != index) {
+                                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                                    BitmapFactory.decodeFile(currentPage.originalImagePath, bounds)
+                                    var sample = 1
+                                    while (max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= PREVIEW_MAX_EDGE) sample *= 2
                                     val options = BitmapFactory.Options().apply {
-                                        inSampleSize = 2
+                                        inSampleSize = sample
                                         inPreferredConfig = Bitmap.Config.ARGB_8888
                                         inMutable = true
                                     }
-                                    originalPreviewBitmap?.recycle()
-                                    originalPreviewBitmap = BitmapFactory.decodeFile(currentPage.originalImagePath, options)
+                                    val previousBase = originalPreviewBitmap
+                                    val decoded = BitmapFactory.decodeFile(currentPage.originalImagePath, options)
+                                    originalPreviewBitmap = decoded
                                     lastLoadedPageIndex = index
+                                    // Drop the old original only after the replacement exists, and
+                                    // never recycle it while the UI may still be drawing it.
+                                    // Defer recycle to next frame so Compose can finish drawing it.
+                                    if (previousBase != null && previousBase !== decoded && !previousBase.isRecycled) {
+                                        val stillPublished = _previewBitmap.value === previousBase
+                                        if (!stillPublished) {
+                                            deferredRecycle(previousBase)
+                                        }
+                                    }
                                 }
 
                                 val base = originalPreviewBitmap
                                 if (base != null) {
-                                    val rotated = if (_rotation.value != 0) {
-                                        imageFilterService.rotateImage(base, _rotation.value.toFloat())
-                                    } else {
-                                        base
-                                    }
-
-                                    val filtered = imageFilterService.applyFilter(rotated, filter)
-                                    val finalBitmap = if (brightness != 0f || contrast != 0f) {
+                                    // Order matters: filter the ORIGINAL first, then rotate for
+                                    // display. This matches the save path, which filters the
+                                    // unrotated original and stores rotation as page metadata.
+                                    // Rotating first (the previous behaviour) made the preview
+                                    // disagree with the saved/exported result at 90/270 degrees.
+                                    val filtered = imageFilterService.applyFilter(base, filter)
+                                    val adjustedLocal = if (brightness != 0f || contrast != 0f) {
                                         imageFilterService.applyAdjustments(filtered, brightness, contrast)
                                     } else {
                                         filtered
                                     }
-                                    if (rotated != base && rotated != finalBitmap) {
-                                        rotated.recycle()
+                                    val finalBitmap = if (rotationDegrees != 0) {
+                                        imageFilterService.rotateImage(adjustedLocal, rotationDegrees.toFloat())
+                                    } else {
+                                        adjustedLocal
                                     }
-                                    if (filtered != finalBitmap && filtered != base) {
+
+                                    // Release intermediates, but never `base`: it is the cached
+                                    // original and is still needed for the next emission.
+                                    if (adjustedLocal != filtered && adjustedLocal != base && adjustedLocal != finalBitmap) {
+                                        adjustedLocal.recycle()
+                                    }
+                                    if (filtered != base && filtered != adjustedLocal && filtered != finalBitmap) {
                                         filtered.recycle()
                                     }
                                     finalBitmap
@@ -166,8 +196,11 @@ class EditorViewModel @Inject constructor(
 
                         val oldPreview = _previewBitmap.value
                         _previewBitmap.value = adjusted
+                        // Defer recycle of the old preview bitmap to the next frame so Compose's
+                        // BitmapPainter can finish drawing it. This prevents
+                        // "Canvas: trying to use a recycled bitmap" crashes.
                         if (oldPreview != null && oldPreview != adjusted && oldPreview != originalPreviewBitmap && !oldPreview.isRecycled) {
-                            oldPreview.recycle()
+                            deferredRecycle(oldPreview)
                         }
                     } catch (e: Throwable) {
                         _previewBitmap.value = null
@@ -175,6 +208,14 @@ class EditorViewModel @Inject constructor(
                 } else {
                     _previewBitmap.value = null
                 }
+            }
+        }
+    }
+
+    private fun deferredRecycle(bitmap: Bitmap) {
+        Handler(Looper.getMainLooper()).post {
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
             }
         }
     }
@@ -358,13 +399,12 @@ class EditorViewModel @Inject constructor(
 
                 val activeProvider = storageVaultRepository.getActiveProvider()
                 val currentSettings = settingsRepository.settings.first()
-                val isCloudAutoEnabled = activeProvider != null &&
-                    currentSettings.cloudBackupEnabled && currentSettings.autoSyncEnabled
-                val shouldUpload = action == SaveAction.UPLOAD_TO_CLOUD ||
-                    action == SaveAction.SAVE_AND_UPLOAD ||
-                    (action == SaveAction.SAVE_LOCAL && isCloudAutoEnabled)
+                val shouldUpload = BackupPolicy.shouldUploadOnSave(
+                    action = action,
+                    settings = currentSettings,
+                    hasActiveProvider = activeProvider != null
+                )
 
-                // Auto-upload to active BYOS cloud destination (Telegram/R2/Drive)
                 if (shouldUpload) {
                     try {
                         cloudStorageService.uploadDocument(updatedDoc, finalPages)
@@ -382,9 +422,13 @@ class EditorViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        originalPreviewBitmap?.recycle()
+        // The published preview can BE the cached original (filter ORIGINAL, no rotation,
+        // no adjustments), so guard against recycling the same instance twice.
+        val published = _previewBitmap.value
+        val cached = originalPreviewBitmap
+        if (cached != null && !cached.isRecycled) cached.recycle()
+        if (published != null && published !== cached && !published.isRecycled) published.recycle()
         originalPreviewBitmap = null
-        _previewBitmap.value?.recycle()
         _previewBitmap.value = null
     }
 }
@@ -394,8 +438,10 @@ private data class EditorPreviewState(
     val index: Int,
     val filter: FilterType,
     val brightness: Float,
-    val contrast: Float
+    val contrast: Float,
+    val rotation: Int
 )
 
 private const val MAX_EDIT_EDGE = 4000
+private const val PREVIEW_MAX_EDGE = 2048
 

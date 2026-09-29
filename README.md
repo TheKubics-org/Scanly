@@ -37,15 +37,15 @@
 
 | # | Feature | Technical Implementation |
 |---|---|---|
-| **01** | **Smart Scanning** | Live optical camera capture via CameraX with dynamic viewfinder. |
-| **02** | **Auto Edge Detection** | Real-time quad contour sensing powered by Google ML Kit. |
-| **03** | **Perspective Correction** | Planar homography matrix transformation to rectify angled document shots. |
+|* **01** | **Smart Scanning** | Google ML Kit Document Scanner (capture, edge detection, crop). |
+| **02** | **Auto Edge Detection** | Provided by ML Kit Document Scanner UI. |
+| **03** | **Perspective Correction** | Handled inside the ML Kit scanning flow. |
 | **04** | **Image Processing** | ColorMatrix filters: Magic Color, Clean B&W, Grayscale, Contrast stretch. |
 | **05** | **Multi-Page Composer** | Full page hierarchy: add, delete, rotate, duplicate, and reorder scans. |
-| **06** | **Lossless PDF Export** | Standardized ISO A4 and US Letter document generation with custom naming. |
-| **07** | **Local Document Library** | SQLite database via Room with folder organization, search, and tags. |
-| **08** | **Biometric Security** | BiometricPrompt integration (fingerprint / face unlock) for private scans. |
-| **09** | **Cloud Storage (Optional)**| WorkManager background sync engine with network metering and quota telemetry. |
+| **06** | **Export & Convert** | PDF / PNG / JPG export plus import of PDF and images. |
+| **07** | **Local Document Library** | SQLite database via Room with folder organization and search. |
+| **08** | **Biometric Security** | BiometricPrompt integration (fingerprint / face unlock). |
+| **09** | **Cloud Storage (Optional)**| WorkManager BYOS sync: Telegram, Cloudflare R2, Google Drive. |
 
 ---
 
@@ -77,8 +77,8 @@ com.thekubics.scanly
 │   ├── folders          # Folder management & batch move
 │   ├── home             # Document grid, recent scans, search
 │   ├── navigation       # Type-safe Jetpack Compose navigation graphs
-│   ├── scanner          # CameraX viewfinder with real-time ML Kit overlays
-│   ├── search           # Full-text OCR & document search
+│   ├── scanner          # ML Kit Document Scanner integration
+│   ├── search           # Document title / OCR text search
 │   ├── settings         # Theme selection, save defaults, cache cleaner
 │   ├── theme            # TheKubics dark-first design tokens & typography
 │   ├── trash            # Trash management & restore
@@ -103,7 +103,7 @@ Scanly is built with tools that ship:
 * **Local Persistence:** AndroidX Room 2.6.1 SQLite Database
 * **Background Tasks:** AndroidX WorkManager 2.10.0
 * **Image Pipeline:** Coil 3 for Compose
-* **Camera Pipeline:** AndroidX CameraX (Camera2, Lifecycle, View)
+* **Camera / Capture:** Google ML Kit Document Scanner
 * **Security:** AndroidX Biometric 1.1.0
 
 ---

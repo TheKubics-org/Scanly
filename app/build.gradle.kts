@@ -16,8 +16,8 @@ android {
         applicationId = "com.thekubics.scanly"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "2.1.2"
+        versionCode = 9
+        versionName = "2.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

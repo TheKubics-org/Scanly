@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.thekubics.scanly.R
+import com.thekubics.scanly.domain.model.DateFilter
+import com.thekubics.scanly.presentation.common.DateFilterChips
 import com.thekubics.scanly.presentation.common.TopAppBar
 import com.thekubics.scanly.domain.model.Document
 import com.thekubics.scanly.presentation.common.EmptyState
@@ -42,6 +44,7 @@ fun SearchScreen(
     val query by viewModel.searchQuery.collectAsState()
     val results by viewModel.searchResults.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
+    val dateFilter by viewModel.dateFilter.collectAsState()
 
     Scaffold(
         topBar = {
@@ -49,7 +52,7 @@ fun SearchScreen(
                 title = { Text(stringResource(R.string.search_title)) },
                 actions = { TheKubicsTopBarLogo() },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
@@ -103,6 +106,12 @@ fun SearchScreen(
                         .padding(horizontal = 16.dp)
                 )
             }
+
+            DateFilterChips(
+                selected = dateFilter,
+                onSelect = viewModel::setDateFilter,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
 
             Box(
                 modifier = Modifier
@@ -184,23 +193,6 @@ private fun SearchResultCard(
                     )
                 }
 
-                if (document.isEncrypted) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .align(Alignment.TopStart)
-                            .size(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Lock,
-                            contentDescription = "Encrypted",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(2.dp)
-                        )
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.width(14.dp))

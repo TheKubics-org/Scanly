@@ -90,7 +90,11 @@ class S3StorageProvider(
         file: File,
         mimeType: String,
         remotePath: String,
-        progressCallback: ((bytesSent: Long, totalBytes: Long) -> Unit)?
+        progressCallback: ((bytesSent: Long, totalBytes: Long) -> Unit)?,
+        // S3/R2 are key-addressed: a PUT to the same key overwrites the object, so
+        // [remotePath] is already a sufficient idempotency key and no existing id
+        // is needed. The parameter is accepted to satisfy the shared interface.
+        @Suppress("UNUSED_PARAMETER") existingRemoteId: String?
     ): StorageUploadResult = withContext(Dispatchers.IO) {
         try {
             val cleanPath = remotePath.trimStart('/')

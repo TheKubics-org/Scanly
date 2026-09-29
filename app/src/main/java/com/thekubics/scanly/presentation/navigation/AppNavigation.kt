@@ -4,7 +4,12 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,6 +30,7 @@ import com.thekubics.scanly.presentation.cloud.StorageProvidersScreen
 import com.thekubics.scanly.presentation.cloud.StorageProvidersViewModel
 import com.thekubics.scanly.presentation.cloud.StorageSetupGuideScreen
 import com.thekubics.scanly.presentation.common.AppLockGate
+import com.thekubics.scanly.presentation.common.OnboardingDialog
 import com.thekubics.scanly.presentation.editor.EditorScreen
 import com.thekubics.scanly.presentation.editor.EditorViewModel
 import com.thekubics.scanly.presentation.folders.FolderDetailScreen
@@ -68,7 +74,14 @@ fun AppNavigation(
     val shouldShowBottomBar = currentRoute !in hideBottomBarRoutes
 
     AppLockGate(isEnabled = settings.appLockEnabled) {
+        if (!settings.hasSeenOnboarding) {
+            OnboardingDialog(onComplete = { settingsViewModel.completeOnboarding() })
+        }
         Scaffold(
+            // Each screen owns the status bar through its top bar. Leaving the
+            // default insets here painted a second status-bar band above that
+            // bar and pushed the last rows under the system navigation.
+            contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
             bottomBar = {
                 if (shouldShowBottomBar) {
                     BottomNavBar(
@@ -87,7 +100,9 @@ fun AppNavigation(
             NavHost(
                 navController = navController,
                 startDestination = Screen.Home.route,
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
                 enterTransition = {
                     fadeIn(animationSpec = tween(300)) + slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Start,
@@ -252,7 +267,9 @@ fun AppNavigation(
                         onNavigateToTrash = { navController.navigate(Screen.Trash.route) },
                         onNavigateToDashboard = { navController.navigate(Screen.StorageDashboard.route) },
                         onNavigateToProviders = { navController.navigate(Screen.StorageProviders.route) },
-                        onNavigateToCloud = { navController.navigate(Screen.Cloud.route) }
+                        onNavigateToCloud = { navController.navigate(Screen.Cloud.route) },
+                        onNavigateToSetupGuide = { providerType -> navController.navigate(Screen.StorageSetupGuide.route + "/$providerType") },
+                        onNavigateToAbout = { /* TODO: navigate to about screen */ }
                     )
                 }
 

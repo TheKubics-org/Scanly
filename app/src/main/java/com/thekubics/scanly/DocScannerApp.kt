@@ -34,5 +34,6 @@ class DocScannerApp : Application(), Configuration.Provider {
         
         notificationService.createNotificationChannels()
         cloudSyncManager.schedulePeriodicSync()
+        cloudSyncManager.scheduleTrashMaintenance()
     }
 }

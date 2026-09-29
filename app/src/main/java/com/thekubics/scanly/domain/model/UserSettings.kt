@@ -19,9 +19,9 @@ package com.thekubics.scanly.domain.model
 data class UserSettings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
     val defaultFilter: FilterType = FilterType.AUTO_ENHANCE,
-    val defaultPageSize: PageSize = PageSize.A4,
+    val defaultPageSize: PageSize = PageSize.AUTO,
     val defaultPdfQuality: QualityLevel = QualityLevel.HIGH,
-    val defaultMargin: MarginPreset = MarginPreset.NORMAL,
+    val defaultMargin: MarginPreset = MarginPreset.NONE,
     val appLockEnabled: Boolean = false,
     val hasSeenOnboarding: Boolean = false,
     val cloudBackupEnabled: Boolean = false,

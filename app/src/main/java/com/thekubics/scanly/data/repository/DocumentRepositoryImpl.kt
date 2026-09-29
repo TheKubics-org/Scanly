@@ -16,8 +16,11 @@ import com.thekubics.scanly.domain.repository.DocumentRepository
 import com.thekubics.scanly.service.filter.ImageFilterService
 import com.thekubics.scanly.service.sync.CloudSyncManager
 import com.thekubics.scanly.util.Constants
+import com.thekubics.scanly.util.DocumentFormatConverter
+import com.thekubics.scanly.util.ExportFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -184,6 +187,79 @@ class DocumentRepositoryImpl @Inject constructor(
         cloudSyncManager.triggerImmediateSync()
 
         doc
+    }
+
+    override suspend fun importFiles(title: String, fileUris: List<String>): Document = withContext(Dispatchers.IO) {
+        val stagingDir = File(context.cacheDir, "import_${System.currentTimeMillis()}").apply { mkdirs() }
+        try {
+            val pagePaths = mutableListOf<String>()
+            for (uriOrPath in fileUris.take(Constants.MAX_SCAN_PAGES)) {
+                val local = copyImportToCache(uriOrPath, stagingDir) ?: continue
+                val ext = local.extension.lowercase()
+                when {
+                    ext == "pdf" -> {
+                        val rendered = DocumentFormatConverter.renderPdfToImages(
+                            pdfFile = local,
+                            outputDir = File(stagingDir, "pdf_${local.nameWithoutExtension}"),
+                            format = ExportFormat.JPEG
+                        )
+                        pagePaths += rendered.map { it.absolutePath }
+                    }
+                    DocumentFormatConverter.isSupportedImportExtension(ext) -> {
+                        pagePaths += local.absolutePath
+                    }
+                }
+                if (pagePaths.size >= Constants.MAX_SCAN_PAGES) break
+            }
+            require(pagePaths.isNotEmpty()) { "No supported PDF/PNG/JPG files found to import." }
+            createDocument(title, pagePaths.take(Constants.MAX_SCAN_PAGES))
+        } finally {
+            stagingDir.deleteRecursively()
+        }
+    }
+
+    private fun copyImportToCache(uriOrPath: String, stagingDir: File): File? {
+        return try {
+            val nameHint = uriOrPath.substringAfterLast('/').substringBefore('?').ifBlank { "import" }
+            val ext = nameHint.substringAfterLast('.', missingDelimiterValue = "")
+                .lowercase()
+                .ifBlank {
+                    // Probe from content type when possible
+                    if (uriOrPath.startsWith("content://")) {
+                        context.contentResolver.getType(Uri.parse(uriOrPath))
+                            ?.substringAfterLast('/')
+                            ?.replace("jpeg", "jpg")
+                            ?: "bin"
+                    } else "bin"
+                }
+            if (!DocumentFormatConverter.isSupportedImportExtension(ext) && ext != "bin") {
+                // Still copy; extension may be refined after write for content URIs
+            }
+            val dest = File(stagingDir, "src_${System.nanoTime()}.$ext")
+            if (uriOrPath.startsWith("content://")) {
+                context.contentResolver.openInputStream(Uri.parse(uriOrPath))?.use { input ->
+                    FileOutputStream(dest).use { output -> input.copyTo(output) }
+                } ?: return null
+            } else {
+                val src = File(uriOrPath)
+                if (!src.exists()) return null
+                src.copyTo(dest, overwrite = true)
+            }
+            if (!dest.exists() || dest.length() == 0L) return null
+            // Sniff PDF magic if extension unknown
+            if (ext == "bin" || !DocumentFormatConverter.isSupportedImportExtension(dest.extension)) {
+                val header = dest.inputStream().use { it.readNBytes(5) }.toString(Charsets.US_ASCII)
+                val sniffed = when {
+                    header.startsWith("%PDF") -> dest.renameTo(File(stagingDir, "${dest.nameWithoutExtension}.pdf"))
+                        .let { if (it) File(stagingDir, "${dest.nameWithoutExtension}.pdf") else dest }
+                    else -> dest
+                }
+                return sniffed.takeIf { DocumentFormatConverter.isSupportedImportExtension(it.extension) }
+            }
+            dest
+        } catch (_: Exception) {
+            null
+        }
     }
 
     override suspend fun updateDocument(document: Document) = withContext(Dispatchers.IO) {
@@ -524,6 +600,36 @@ class DocumentRepositoryImpl @Inject constructor(
                 documentDao.updateOcrText(documentId, combinedOcr)
             }
         }
+    }
+
+    override suspend fun regenerateThumbnailsIfStale(): Int = withContext(Dispatchers.IO) {
+        val prefs = context.getSharedPreferences(Constants.PREFS_FILE, Context.MODE_PRIVATE)
+        val generated = prefs.getInt(Constants.PREF_THUMBNAIL_GEN, 0)
+        if (generated >= Constants.THUMBNAIL_VERSION) return@withContext 0
+
+        var regenerated = 0
+        documentDao.getAllDocuments().first().forEach { docEntity ->
+            if (docEntity.isTrashed) return@forEach
+            val pages = pageDao.getPagesForDocumentSync(docEntity.id)
+            if (pages.isEmpty()) return@forEach
+
+            var firstThumb: String? = null
+            pages.forEach { page ->
+                val source = page.processedImagePath.ifBlank { page.originalImagePath }
+                if (source.isBlank()) return@forEach
+                val newThumb = makeThumbnail(docEntity.id, page.pageNumber, source, page.rotation)
+                pageDao.update(page.copy(thumbnailPath = newThumb))
+                if (firstThumb == null) firstThumb = newThumb
+            }
+
+            if (firstThumb != null) {
+                documentDao.upsert(docEntity.copy(thumbnailPath = firstThumb))
+                regenerated++
+            }
+        }
+
+        prefs.edit().putInt(Constants.PREF_THUMBNAIL_GEN, Constants.THUMBNAIL_VERSION).apply()
+        regenerated
     }
 
     private suspend fun recalculateDocumentSize(documentId: String) = withContext(Dispatchers.IO) {

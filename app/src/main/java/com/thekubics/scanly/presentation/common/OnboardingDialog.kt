@@ -45,10 +45,10 @@ fun OnboardingDialog(onComplete: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     
     val pages = listOf(
-        OnboardingPage(Icons.Default.DocumentScanner, "Welcome to DocScanner", "The best way to scan and manage your documents."),
-        OnboardingPage(Icons.Default.CameraAlt, "Scan Documents", "Use your camera to quickly scan physical documents into digital format."),
-        OnboardingPage(Icons.Default.AutoFixHigh, "Enhance & Export", "Apply filters, crop, and export your scans to high-quality PDFs."),
-        OnboardingPage(Icons.Default.Security, "100% Offline & Private", "Your documents stay securely on your device. Complete privacy with local encryption.")
+        OnboardingPage(Icons.Default.DocumentScanner, "Welcome to Scanly", "Scan documents. Cut the clutter."),
+        OnboardingPage(Icons.Default.CameraAlt, "Smart Scan", "Capture multi-page documents with Google’s document scanner — edges, crop, and cleanup included."),
+        OnboardingPage(Icons.Default.AutoFixHigh, "Enhance & Convert", "Apply filters, then export or convert to PDF, PNG, or JPG."),
+        OnboardingPage(Icons.Default.Security, "Offline-first & Private", "Docs stay on your device. Optional BYOS backup to Telegram, R2, or Drive — credentials stay in an encrypted vault.")
     )
 
     Dialog(

@@ -8,6 +8,7 @@ package com.thekubics.scanly.domain.model
  * @property folderId ID of the folder containing this document, if any.
  * @property pageCount Number of pages in the document.
  * @property thumbnailPath Path to the thumbnail image of the document.
+ * @property pdfPath Path to the generated PDF of this document, if any (e.g., from scanner or import).
  * @property ocrText Extracted text from all pages in the document.
  * @property isEncrypted Whether the document is encrypted locally.
  * @property isTrashed Whether the document is moved to trash.
@@ -25,6 +26,7 @@ data class Document(
     val folderId: String? = null,
     val pageCount: Int,
     val thumbnailPath: String,
+    val pdfPath: String? = null,
     val ocrText: String? = null,
     val isEncrypted: Boolean = false,
     val isTrashed: Boolean = false,

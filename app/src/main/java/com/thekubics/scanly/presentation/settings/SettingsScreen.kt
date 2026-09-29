@@ -1,5 +1,6 @@
 package com.thekubics.scanly.presentation.settings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,8 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -39,14 +42,23 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
+    onNavigateToProviders: () -> Unit,
+    onNavigateToSetupGuide: (String) -> Unit,
+    onNavigateToAbout: () -> Unit,
     onNavigateToTrash: () -> Unit,
     onNavigateToDashboard: () -> Unit,
-    onNavigateToProviders: () -> Unit,
     onNavigateToCloud: () -> Unit
 ) {
+    val context = LocalContext.current
+    val versionName = remember(context) {
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        } catch (e: Exception) {
+            "Unknown"
+        }
+    }
     val settings by viewModel.settings.collectAsState()
     val activeConfig by viewModel.activeConfig.collectAsState()
-    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -55,13 +67,19 @@ fun SettingsScreen(
     var showSaveActionDialog by remember { mutableStateOf(false) }
     var showClearCacheDialog by remember { mutableStateOf(false) }
 
+    val appVersionName = remember {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull() ?: "2.2.1"
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title)) },
                 actions = { TheKubicsTopBarLogo() },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
@@ -77,6 +95,42 @@ fun SettingsScreen(
                 .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Header: Scanly logo + description + license
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.app_logo),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                )
+                Text(
+                    text = "Scanly — Local-first document scanner",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Text(
+                    text = "Version $versionName",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Text(
+                    text = "Apache-2.0 License",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+
             // Category: Cloud Storage & Sync
             SettingsCard(
                 categoryTitle = stringResource(R.string.settings_cloud_category),
@@ -227,6 +281,17 @@ fun SettingsScreen(
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                 SettingsClickableItem(
+                    title = "Scanly Website",
+                    subtitle = "Scanly.thekubics.space",
+                    trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
+                    onClick = {
+                        try { uriHandler.openUri("https://scanly.thekubics.space") } catch (_: Exception) {}
+                    }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                SettingsClickableItem(
                     title = "TheKubics Website",
                     subtitle = "www.thekubics.space",
                     trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
@@ -265,7 +330,7 @@ fun SettingsScreen(
             ) {
                 SettingsInfoItem(
                     title = stringResource(R.string.settings_version),
-                    value = "2.1.1"
+                    value = appVersionName
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -516,7 +581,8 @@ fun SaveActionSelectionDialog(
                 val actions = listOf(
                     SaveAction.SAVE_LOCAL to R.string.save_dialog_save_local,
                     SaveAction.SAVE_AND_UPLOAD to R.string.save_dialog_save_and_upload,
-                    SaveAction.UPLOAD_TO_CLOUD to R.string.save_dialog_upload_cloud
+                    SaveAction.UPLOAD_TO_CLOUD to R.string.save_dialog_upload_cloud,
+                    SaveAction.ASK_EVERY_TIME to R.string.save_dialog_ask_every_time
                 )
 
                 actions.forEach { (action, labelRes) ->

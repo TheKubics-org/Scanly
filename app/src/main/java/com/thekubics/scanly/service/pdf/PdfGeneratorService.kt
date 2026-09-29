@@ -151,26 +151,35 @@ class PdfGeneratorService @Inject constructor() {
         printManager.print(file.nameWithoutExtension, printAdapter, attributes)
     }
 
+    /**
+     * Resolves the PDF page box for one scanned image.
+     *
+     * A fixed [PageSize] (A4, Letter, …) returns that sheet's dimensions and the
+     * image is then fitted inside it, which leaves the scan floating on blank
+     * paper. [PageSize.AUTO] instead sizes the page to the scan's own aspect
+     * ratio so the image fills the sheet edge to edge, which is what a document
+     * scanner should produce. Width is pinned to 595pt (A4 width) for a sane
+     * maximum page width; only the height follows the image.
+     */
     private fun getDimensions(pageSize: PageSize, imgWidth: Int, imgHeight: Int): Pair<Int, Int> {
-        return when (pageSize) {
-            PageSize.A4 -> Pair(595, 842)
-            PageSize.LETTER -> Pair(612, 792)
-            PageSize.LEGAL -> Pair(612, 1008)
-            PageSize.A3 -> Pair(842, 1191)
-            PageSize.A5 -> Pair(420, 595)
-            PageSize.AUTO -> {
-                val scale = 595f / imgWidth
-                Pair(595, (imgHeight * scale).toInt())
-            }
+        if (pageSize == PageSize.AUTO) {
+            if (imgWidth <= 0 || imgHeight <= 0) return Pair(AUTO_BASE_WIDTH_PT, AUTO_BASE_WIDTH_PT)
+            val scaledHeight = (imgHeight.toFloat() * AUTO_BASE_WIDTH_PT / imgWidth).toInt()
+            return Pair(AUTO_BASE_WIDTH_PT, scaledHeight.coerceAtLeast(1))
         }
+        // Single source of truth: the enum already carries the dimensions.
+        return Pair(pageSize.width.toInt(), pageSize.height.toInt())
     }
 
-    private fun getMarginPoints(marginPreset: MarginPreset): Int {
-        return when (marginPreset) {
-            MarginPreset.NONE -> 0
-            MarginPreset.SMALL -> 36
-            MarginPreset.NORMAL -> 72
-            MarginPreset.LARGE -> 108
-        }
+    /**
+     * Margin in PDF points. Uses [MarginPreset.dpValue] so the value shown in the
+     * export dialog is the value actually applied — this previously returned a
+     * hardcoded 72 (1 inch) for NORMAL while the UI advertised 16.
+     */
+    private fun getMarginPoints(marginPreset: MarginPreset): Int = marginPreset.dpValue
+
+    private companion object {
+        /** Page width used for aspect-fitted (AUTO) pages, in points. */
+        const val AUTO_BASE_WIDTH_PT = 595
     }
 }

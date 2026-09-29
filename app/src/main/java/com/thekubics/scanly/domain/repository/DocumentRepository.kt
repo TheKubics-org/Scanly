@@ -40,6 +40,11 @@ interface DocumentRepository {
     suspend fun createDocument(title: String, pageImagePaths: List<String>): Document
 
     /**
+     * Imports PDF / PNG / JPG / JPEG files into a new document (PDF pages are rasterized).
+     */
+    suspend fun importFiles(title: String, fileUris: List<String>): Document
+
+    /**
      * Updates an existing document's metadata.
      */
     suspend fun updateDocument(document: Document)
@@ -124,4 +129,11 @@ interface DocumentRepository {
      * Updates extracted OCR text for a document and page to enable full-text search.
      */
     suspend fun updateOcrText(documentId: String, pageId: String, ocrText: String)
+
+    /**
+     * Regenerates thumbnails for all non-trashed documents when the thumbnail
+     * generation version stored in prefs is older than [Constants.THUMBNAIL_VERSION].
+     * Returns the number of documents whose thumbnails were regenerated (0 if no-op).
+     */
+    suspend fun regenerateThumbnailsIfStale(): Int
 }

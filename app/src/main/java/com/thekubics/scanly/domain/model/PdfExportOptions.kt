@@ -3,6 +3,11 @@ package com.thekubics.scanly.domain.model
 /**
  * Represents the configuration options when exporting a document to PDF.
  *
+ * Defaults are chosen for document scanning rather than desktop publishing: the
+ * page box matches each scan's own aspect ratio ([PageSize.AUTO]) and there is no
+ * margin, so a scan fills its page instead of floating on blank A4 paper. Pick a
+ * fixed [pageSize] when you specifically want printable A4/Letter sheets.
+ *
  * @property pageSize The physical size of the PDF pages.
  * @property margin The margin applied around the content on each page.
  * @property quality The JPEG compression quality applied to images.
@@ -10,8 +15,8 @@ package com.thekubics.scanly.domain.model
  * @property author The metadata author of the PDF document.
  */
 data class PdfExportOptions(
-    val pageSize: PageSize = PageSize.A4,
-    val margin: MarginPreset = MarginPreset.NORMAL,
+    val pageSize: PageSize = PageSize.AUTO,
+    val margin: MarginPreset = MarginPreset.NONE,
     val quality: QualityLevel = QualityLevel.HIGH,
     val documentTitle: String? = null,
     val author: String? = null

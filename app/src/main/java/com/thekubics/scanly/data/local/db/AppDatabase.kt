@@ -26,7 +26,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SyncQueueEntity::class,
         CloudDocumentEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -58,6 +58,11 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_cloud_documents_localDocumentId` ON `cloud_documents` (`localDocumentId`)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_cloud_documents_userId` ON `cloud_documents` (`userId`)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_cloud_documents_uploadDate` ON `cloud_documents` (`uploadDate`)")
+            }
+        }
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `documents` ADD COLUMN `pdfPath` TEXT")
             }
         }
     }

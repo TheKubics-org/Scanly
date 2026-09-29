@@ -20,6 +20,10 @@
     <string name="home_sort_name_asc">Name (A–Z)</string>
     <string name="home_sort_name_desc">Name (Z–A)</string>
     <string name="home_sort_pages">Page count</string>
+    <string name="home_filter_all">All time</string>
+    <string name="home_filter_today">Today</string>
+    <string name="home_filter_week">This week</string>
+    <string name="home_filter_month">This month</string>
 
     <!-- Scanner -->
     <string name="scanner_title">Scan Document</string>
@@ -223,6 +227,7 @@
     <string name="save_dialog_upload_cloud_desc">Back up document to your secure cloud storage</string>
     <string name="save_dialog_save_and_upload">Save &amp; Upload</string>
     <string name="save_dialog_save_and_upload_desc">Keep local copy and synchronize to cloud</string>
+    <string name="save_dialog_ask_every_time">Ask every time</string>
     <string name="save_dialog_remember">Remember my choice in Settings</string>
 
     <!-- Cloud Settings -->

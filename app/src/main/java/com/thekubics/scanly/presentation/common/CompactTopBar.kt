@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -23,10 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Compact drop-in replacement for the Material 3 TopAppBar: a 48dp content row
- * under the status-bar inset (88dp total on this device) with a titleMedium
- * title, instead of the stock 64dp/104dp titleLarge bar. Matches the geometry
- * HomeScreen already uses.
+ * Compact drop-in replacement for the Material 3 TopAppBar: one status-bar
+ * inset plus a single title row (at least 48dp). The root scaffold must not
+ * also pad for the status bar, or this spacer is applied twice.
  *
  * Screens opt in with an explicit `import ...presentation.common.TopAppBar`,
  * which shadows the material3 star import (explicit imports win). The
@@ -42,20 +41,22 @@ fun TopAppBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
-    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.topAppBarColors(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
+    ),
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(colors.containerColor)
-            .windowInsetsPadding(windowInsets)
-            .height(48.dp)
     ) {
+        Spacer(Modifier.windowInsetsTopHeight(windowInsets))
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp),
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val rowScope = this

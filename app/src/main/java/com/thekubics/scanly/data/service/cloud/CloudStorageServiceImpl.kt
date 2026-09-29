@@ -25,6 +25,8 @@ import com.thekubics.scanly.domain.service.cloud.CloudStorageService
 import com.thekubics.scanly.service.filter.ImageFilterService
 import com.thekubics.scanly.service.pdf.PdfGeneratorService
 import com.thekubics.scanly.util.Constants
+import com.thekubics.scanly.util.DocumentFormatConverter
+import com.thekubics.scanly.util.ExportFormat
 import com.thekubics.scanly.util.NetworkMonitor
 import com.thekubics.scanly.util.ScanlyLogger
 import com.thekubics.scanly.data.vault.StorageVaultRepository
@@ -127,16 +129,18 @@ class CloudStorageServiceImpl @Inject constructor(
             documentDao.updateSyncStateOnly(document.id, SyncStatus.UPLOADING.name)
 
             // Determine file to upload: use pdfFile if available, or generate from pages
+            val safeTitle = document.title.replace(Regex("[^a-zA-Z0-9._-]"), "_").ifBlank { "scan" }
             val fileToUpload: File? = if (pdfFile != null && pdfFile.exists() && pdfFile.length() > 0) {
                 pdfFile
             } else if (pages.isNotEmpty()) {
-                val safeTitle = document.title.replace(Regex("[^a-zA-Z0-9._-]"), "_").ifBlank { "scan" }
                 val targetPdf = File(context.cacheDir, "${safeTitle}_${document.id}.pdf")
                 val exportOptions = PdfExportOptions(
                     documentTitle = document.title,
-                    pageSize = PageSize.A4,
-                    quality = QualityLevel.HIGH,
-                    margin = MarginPreset.NORMAL
+                    // AUTO: the PDF page matches the scan's aspect ratio, so backups
+                    // are not a small image floating on blank A4 paper.
+                    pageSize = PageSize.AUTO,
+                    margin = MarginPreset.NONE,
+                    quality = QualityLevel.HIGH
                 )
                 val genResult = pdfGeneratorService.generatePdf(pages, exportOptions, targetPdf)
                 if (genResult.isSuccess && targetPdf.exists() && targetPdf.length() > 0) {
@@ -177,9 +181,15 @@ class CloudStorageServiceImpl @Inject constructor(
             val mimeType = if (isPdf) "application/pdf" else "image/jpeg"
             // Stable idempotency key: the same document always targets the same cloud
             // object, so retries/re-saves overwrite instead of appending duplicates.
-            val remoteKey = "${document.id}.${if (isPdf) "pdf" else "jpg"}"
+            // Filename follows the [user-saved-name]+[app-unique-id].[extension] format,
+            // matching the local cache name so cloud objects are recognisable.
+            val docName = if (isPdf) "pdf" else "jpg"
+            val remoteKey = "${safeTitle}_${document.id}.$docName"
 
             val startTime = System.currentTimeMillis()
+            // Pass the previous remote id so create-only providers (Drive, Telegram)
+            // can replace their existing object instead of adding a second copy.
+            val existingRemoteId = document.cloudId
             val uploadResult = provider.uploadFile(
                 file = fileToUpload,
                 mimeType = mimeType,
@@ -188,7 +198,8 @@ class CloudStorageServiceImpl @Inject constructor(
                     if (totalBytes > 0) {
                         onProgress((bytesSent.toFloat() / totalBytes).coerceIn(0f, 1f))
                     }
-                }
+                },
+                existingRemoteId = existingRemoteId
             )
             val elapsedMs = System.currentTimeMillis() - startTime
 
@@ -319,69 +330,91 @@ class CloudStorageServiceImpl @Inject constructor(
             val downloaded = downloadResult.localFile
                 ?: return@withContext Result.failure(IllegalStateException("Download from ${provider.displayName} produced no file."))
 
-            if (isPdf) {
-                downloaded.delete()
-                return@withContext Result.failure(
-                    IllegalStateException("PDF backups cannot be restored as editable pages yet. The backup remains safe in cloud; download it from the storage destination.")
-                )
-            }
-
             val now = System.currentTimeMillis()
             val newDocId = UUID.randomUUID().toString()
-            val newPageId = UUID.randomUUID().toString()
+            val pagesDir = File(context.filesDir, "${Constants.DOCUMENTS_DIR}/$newDocId").apply { mkdirs() }
+            val thumbsDir = File(context.filesDir, Constants.THUMBNAILS_DIR).apply { mkdirs() }
 
-            val thumbnailPath = if (!isPdf) {
-                imageFilterService.writeThumbnail(
-                    sourcePath = downloaded.absolutePath,
-                    rotationDegrees = 0,
-                    outputDir = File(context.filesDir, Constants.THUMBNAILS_DIR),
-                    name = "${newDocId}_page_1_$now.jpg"
-                )?.absolutePath ?: downloaded.absolutePath
+            // PDF backups → rasterize into editable page images; images stay as-is.
+            val pageImageFiles: List<File> = if (isPdf || downloaded.extension.equals("pdf", ignoreCase = true)) {
+                val rendered = DocumentFormatConverter.renderPdfToImages(
+                    pdfFile = downloaded,
+                    outputDir = pagesDir,
+                    format = ExportFormat.JPEG,
+                    jpegQuality = 92
+                )
+                downloaded.delete()
+                if (rendered.isEmpty()) {
+                    return@withContext Result.failure(
+                        IllegalStateException("Could not read pages from the PDF backup.")
+                    )
+                }
+                rendered
             } else {
-                // PDFs have no image thumbnail; grid falls back to a placeholder
-                ""
+                val dest = File(pagesDir, "page_1.${downloaded.extension.ifBlank { "jpg" }}")
+                if (downloaded.absolutePath != dest.absolutePath) {
+                    downloaded.copyTo(dest, overwrite = true)
+                    downloaded.delete()
+                }
+                listOf(dest)
+            }
+
+            val pageEntities = pageImageFiles.mapIndexed { index, imageFile ->
+                val pageNum = index + 1
+                val thumb = imageFilterService.writeThumbnail(
+                    sourcePath = imageFile.absolutePath,
+                    rotationDegrees = 0,
+                    outputDir = thumbsDir,
+                    name = "${newDocId}_page_${pageNum}_$now.jpg"
+                )?.absolutePath ?: imageFile.absolutePath
+
+                Page(
+                    id = UUID.randomUUID().toString(),
+                    documentId = newDocId,
+                    pageNumber = pageNum,
+                    originalImagePath = imageFile.absolutePath,
+                    processedImagePath = imageFile.absolutePath,
+                    thumbnailPath = thumb,
+                    width = 0,
+                    height = 0,
+                    rotation = 0,
+                    filter = FilterType.ORIGINAL,
+                    brightness = 0f,
+                    contrast = 0f,
+                    ocrText = null,
+                    ocrConfidence = null,
+                    createdAt = now
+                )
             }
 
             val newDoc = Document(
                 id = newDocId,
                 title = cloudEntity.title,
                 folderId = null,
-                pageCount = 1,
-                thumbnailPath = thumbnailPath,
+                pageCount = pageEntities.size,
+                thumbnailPath = pageEntities.firstOrNull()?.thumbnailPath.orEmpty(),
                 ocrText = null,
                 isEncrypted = false,
                 isTrashed = false,
                 syncStatus = SyncStatus.SYNCED,
                 cloudId = cloudEntity.id,
-                fileSize = downloadResult.bytesDownloaded.takeIf { it > 0 } ?: downloaded.length(),
+                fileSize = pageImageFiles.sumOf { it.length() },
                 lastSyncedAt = now,
                 createdAt = cloudEntity.uploadDate,
                 updatedAt = now
             )
-            val newPage = Page(
-                id = newPageId,
-                documentId = newDocId,
-                pageNumber = 1,
-                originalImagePath = downloaded.absolutePath,
-                processedImagePath = downloaded.absolutePath,
-                thumbnailPath = thumbnailPath,
-                width = 0,
-                height = 0,
-                rotation = 0,
-                filter = FilterType.ORIGINAL,
-                brightness = 0f,
-                contrast = 0f,
-                ocrText = null,
-                ocrConfidence = null,
-                createdAt = now
-            )
 
             appDatabase.withTransaction {
                 documentDao.upsert(newDoc.toEntity())
-                pageDao.insert(newPage.toEntity())
+                pageDao.insertAll(pageEntities.map { it.toEntity() })
+                cloudDocumentDao.upsert(
+                    cloudEntity.copy(localDocumentId = newDocId)
+                )
             }
 
-            ScanlyLogger.cloudInfo("DOWNLOAD_SUCCESS cloudId=${ScanlyLogger.shortId(cloudDocumentId)} size=${ScanlyLogger.formatBytes(downloaded.length())} target=${downloaded.name}")
+            ScanlyLogger.cloudInfo(
+                "DOWNLOAD_SUCCESS cloudId=${ScanlyLogger.shortId(cloudDocumentId)} pages=${pageEntities.size}"
+            )
             Result.success(newDoc)
         } catch (e: Exception) {
             ScanlyLogger.cloudError("DOWNLOAD_EXCEPTION cloudId=${ScanlyLogger.shortId(cloudDocumentId)}", e)

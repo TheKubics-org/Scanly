@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import com.thekubics.scanly.R
 import com.thekubics.scanly.presentation.common.TopAppBar
 import com.thekubics.scanly.domain.model.CloudDocument
@@ -36,6 +37,7 @@ import com.thekubics.scanly.data.storage.StorageProviderType
 import com.thekubics.scanly.presentation.common.ConfirmationDialog
 import com.thekubics.scanly.presentation.common.EmptyState
 import com.thekubics.scanly.presentation.common.TheKubicsTopBarLogo
+import com.thekubics.scanly.presentation.common.shimmer
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -108,7 +110,7 @@ fun CloudScreen(
                     TheKubicsTopBarLogo()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
@@ -128,6 +130,7 @@ fun CloudScreen(
                     usedBytes = storageQuota.usedBytes,
                     totalBytes = storageQuota.totalBytes,
                     usageFraction = storageQuota.usageFraction,
+                    activeProviderName = activeConfig?.displayName,
                     onViewDashboard = onNavigateToDashboard
                 )
             }
@@ -277,8 +280,7 @@ fun CloudScreen(
                         onClick = {
                             cloudDoc.localDocumentId?.let { onDocumentClick(it) }
                         },
-                        canDownload = activeConfig?.type != StorageProviderType.TELEGRAM &&
-                            !cloudDoc.fileType.equals("PDF", ignoreCase = true),
+                        canDownload = true,
                         onDownload = { viewModel.downloadDocument(context, cloudDoc) },
                         onDelete = { documentToDelete = cloudDoc }
                     )
@@ -307,6 +309,7 @@ private fun StorageQuickCard(
     usedBytes: Long,
     totalBytes: Long,
     usageFraction: Float,
+    activeProviderName: String? = null,
     onViewDashboard: () -> Unit
 ) {
     val context = LocalContext.current
@@ -317,7 +320,13 @@ private fun StorageQuickCard(
     } else {
         stringResource(R.string.cloud_storage_backed_up, formattedUsed)
     }
-    val limitLabel = if (totalBytes > 0L) {
+    val limitLabel = if (!activeProviderName.isNullOrBlank()) {
+        if (totalBytes > 0L) {
+            "Active: $activeProviderName • ${stringResource(R.string.cloud_utilized, (usageFraction * 100).toInt())}"
+        } else {
+            "Active provider: $activeProviderName"
+        }
+    } else if (totalBytes > 0L) {
         stringResource(R.string.cloud_utilized, (usageFraction * 100).toInt())
     } else {
         stringResource(R.string.cloud_storage_limit_provider)
@@ -328,8 +337,7 @@ private fun StorageQuickCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onViewDashboard),
+            .clip(RoundedCornerShape(20.dp)),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         shape = RoundedCornerShape(20.dp)
     ) {
@@ -364,12 +372,31 @@ private fun StorageQuickCard(
                     }
 
                     Column {
-                        Text(
-                            text = usageLabel,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = usageLabel,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            if (!activeProviderName.isNullOrBlank()) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        text = activeProviderName,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                        }
                         Text(
                             text = limitLabel,
                             style = MaterialTheme.typography.bodySmall,
@@ -380,7 +407,8 @@ private fun StorageQuickCard(
 
                 TextButton(
                     onClick = onViewDashboard,
-                    contentPadding = PaddingValues(horizontal = 8.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    modifier = Modifier.height(40.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.cloud_dashboard),
@@ -450,11 +478,22 @@ private fun CloudDocumentCard(
                 contentAlignment = Alignment.Center
             ) {
                 if (!document.thumbnailUrl.isNullOrBlank()) {
-                    AsyncImage(
+                    SubcomposeAsyncImage(
                         model = File(document.thumbnailUrl),
                         contentDescription = stringResource(R.string.cd_document_thumbnail),
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(modifier = Modifier.fillMaxSize().shimmer())
+                        },
+                        error = {
+                            Icon(
+                                imageVector = if (document.fileType == "PDF") Icons.Default.PictureAsPdf else Icons.Default.Description,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     )
                 } else {
                     Icon(

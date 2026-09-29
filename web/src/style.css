@@ -2919,7 +2919,7 @@ footer {
   max-width: 1280px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 2.2fr 1fr 1fr 1fr;
+  grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr;
   gap: clamp(2rem, 5vw, 4rem);
   margin-bottom: clamp(3rem, 6vw, 5rem);
 }
@@ -3008,6 +3008,12 @@ footer {
 
 .footer-col a:hover {
   color: var(--ink);
+}
+
+.footer-author-site {
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-word;
 }
 
 .footer-bottom {

@@ -60,7 +60,7 @@ fun StorageDashboardScreen(
                 },
                 actions = { TheKubicsTopBarLogo() },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
@@ -170,9 +170,9 @@ fun StorageDashboardScreen(
                 StorageCategoryCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Outlined.PictureAsPdf,
-                    categoryName = "Vault Docs",
-                    formattedSize = formattedPdfs,
-                    color = MaterialTheme.colorScheme.error
+                    categoryName = "Documents",
+                    formattedSize = formattedDocs,
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 StorageCategoryCard(
@@ -185,10 +185,10 @@ fun StorageDashboardScreen(
 
                 StorageCategoryCard(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.Description,
-                    categoryName = "Plain Docs",
-                    formattedSize = formattedDocs,
-                    color = MaterialTheme.colorScheme.primary
+                    icon = Icons.Outlined.PictureAsPdf,
+                    categoryName = "Other",
+                    formattedSize = formattedPdfs,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
 
