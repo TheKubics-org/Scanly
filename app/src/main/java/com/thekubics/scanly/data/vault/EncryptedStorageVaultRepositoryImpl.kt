@@ -302,6 +302,7 @@ private class InMemoryPreferences : SharedPreferences {
 
     override fun getString(key: String, defValue: String?): String? = map[key] as? String ?: defValue
 
+    @Suppress("UNCHECKED_CAST")
     override fun getStringSet(key: String, defValues: MutableSet<String>?): MutableSet<String>? =
         map[key] as? MutableSet<String> ?: defValues
 

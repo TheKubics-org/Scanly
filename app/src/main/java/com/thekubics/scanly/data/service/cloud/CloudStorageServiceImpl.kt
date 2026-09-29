@@ -476,7 +476,7 @@ class CloudStorageServiceImpl @Inject constructor(
             for (task in pendingTasks) {
                 // Dead-letter tasks that have exceeded max retries so they surface in the UI
                 // instead of being silently dropped or retried forever.
-                if ((task.retryCount ?: 0) >= MAX_SYNC_RETRIES) {
+                if (task.retryCount >= MAX_SYNC_RETRIES) {
                     ScanlyLogger.syncWarn("SYNC_DEAD_LETTER doc=${ScanlyLogger.shortId(task.documentId)} retries=${task.retryCount} msg=${task.errorMessage}")
                     syncQueueDao.updateStatus(
                         id = task.id,

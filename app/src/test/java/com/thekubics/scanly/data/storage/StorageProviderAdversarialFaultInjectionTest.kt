@@ -323,7 +323,7 @@ class StorageProviderAdversarialFaultInjectionTest {
         val result = provider.uploadFile(testFile, "application/pdf", "doc500.pdf")
 
         assertFalse(result.isSuccess)
-        assertTrue(result.errorMessage!!.contains("500") || result.errorMessage!!.contains("failed"))
+        assertTrue(result.errorMessage!!.contains("500") || result.errorMessage.contains("failed"))
     }
 
     @Test
@@ -745,7 +745,7 @@ class StorageProviderAdversarialFaultInjectionTest {
 
         assertFalse(result.isSuccess)
         assertTrue(result.errorMessage!!.contains("403"))
-        assertTrue(result.errorMessage!!.contains("quota exceeded"))
+        assertTrue(result.errorMessage.contains("quota exceeded"))
     }
 
     @Test

@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -39,7 +40,7 @@ fun StorageSetupGuideScreen(
     onNavigateBack: () -> Unit
 ) {
     val (title, icon) = when (providerType) {
-        StorageProviderType.TELEGRAM -> "Telegram Bot Setup" to Icons.Outlined.Send
+        StorageProviderType.TELEGRAM -> "Telegram Bot Setup" to Icons.AutoMirrored.Outlined.Send
         StorageProviderType.CLOUDFLARE_R2 -> "Cloudflare R2 Setup" to Icons.Outlined.Cloud
         StorageProviderType.GOOGLE_DRIVE -> "Google Drive Setup" to Icons.Outlined.AddToDrive
     }

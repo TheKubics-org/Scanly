@@ -24,10 +24,10 @@ data class UserSettings(
     val defaultMargin: MarginPreset = MarginPreset.NORMAL,
     val appLockEnabled: Boolean = false,
     val hasSeenOnboarding: Boolean = false,
-    val cloudBackupEnabled: Boolean = true,
-    val autoSyncEnabled: Boolean = true,
+    val cloudBackupEnabled: Boolean = false,
+    val autoSyncEnabled: Boolean = false,
     val wifiOnlyUpload: Boolean = false,
-    val defaultSaveAction: SaveAction = SaveAction.SAVE_AND_UPLOAD,
+    val defaultSaveAction: SaveAction = SaveAction.SAVE_LOCAL,
     val uploadQuality: QualityLevel = QualityLevel.HIGH
 ) {
     /**

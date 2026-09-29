@@ -126,7 +126,9 @@ fun DocScannerTheme(
             }
             if (context is Activity) {
                 val window = context.window
+                @Suppress("DEPRECATION")
                 window.statusBarColor = android.graphics.Color.TRANSPARENT
+                @Suppress("DEPRECATION")
                 window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
                 val insetsController = WindowCompat.getInsetsController(window, view)

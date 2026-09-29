@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 
+@Suppress("DEPRECATION")
 @Composable
 fun AppLockGate(
     isEnabled: Boolean,
