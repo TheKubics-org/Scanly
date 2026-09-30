@@ -70,7 +70,7 @@ fun SettingsScreen(
     val appVersionName = remember {
         runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName
-        }.getOrNull() ?: "2.2.1"
+        }.getOrNull() ?: "2.2.2"
     }
 
     Scaffold(
@@ -124,7 +124,7 @@ fun SettingsScreen(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
                 Text(
-                    text = "Apache-2.0 License",
+                    text = "MIT License",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -338,6 +338,13 @@ fun SettingsScreen(
                 SettingsInfoItem(
                     title = "Offline Privacy Guarantee",
                     value = "100% On-Device Scanning • Zero Analytics"
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                SettingsInfoItem(
+                    title = "License",
+                    value = "MIT License"
                 )
             }
 
